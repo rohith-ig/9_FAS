@@ -214,12 +214,8 @@ export default function FacultyScheduleViewPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F7F9FC] px-4 py-10">
+    <main className="min-h-screen bg-[#F7F9FC] px-4">
       <section className="mx-auto w-full max-w-6xl space-y-6">
-        <div className="mb-4">
-          <BackArrowButton />
-        </div>
-
         <header className="rounded-lg border border-[#DCE3ED] bg-white p-5 shadow-sm">
           <p className="text-xs uppercase tracking-[0.12em] text-[#6C8096]">Faculty</p>
           <h1 className="mt-1 text-2xl font-bold text-[#1F3A5F]">View Schedule</h1>

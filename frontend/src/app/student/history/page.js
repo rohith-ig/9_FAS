@@ -30,7 +30,7 @@ const studentAppointments = [
 
 export default function StudentHistoryPage() {
     return (
-        <div className="mx-auto w-full max-w-6xl px-4 py-8">
+        <div className="mx-auto w-full max-w-6xl px-4">
 
             <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
