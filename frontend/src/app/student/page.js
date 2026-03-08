@@ -43,9 +43,9 @@ const quickActions = [
     },
     {
         title: "Past Appointments",
-        desc: "Review your appointment history.",
+        desc: "Review your pending requests and appointment history.",
         icon: CalendarCheck,
-        href: "/student", // 
+        href: "/student/history", // 
         color: "bg-emerald-100 text-emerald-700",
     },
     {
@@ -64,7 +64,7 @@ export default function StudentDashboard() {
             <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-[#1F3A5F]">
-                        Welcome back, Student!
+                        Welcome back, John Doe
                     </h1>
                     <p className="text-sm text-[#5A6C7D] mt-1">
                         Manage your appointments, check faculty availability, and track requests.
@@ -106,7 +106,7 @@ export default function StudentDashboard() {
             <section>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-[#1F3A5F]">Upcoming Appointments</h2>
-                    <Link href="/student/req" className="text-sm text-[#4A6FA5] hover:underline font-medium">View All</Link>
+                    <Link href="/student/history" className="text-sm text-[#4A6FA5] hover:underline font-medium">View All</Link>
                 </div>
 
                 <div className="bg-white rounded-xl border border-[#DCE3ED] shadow-sm overflow-hidden">
@@ -133,9 +133,6 @@ export default function StudentDashboard() {
                                         >
                                             {apt.status}
                                         </span>
-                                        <button className="text-sm text-[#5A6C7D] border border-[#DCE3ED] bg-white hover:bg-gray-50 px-3 py-1.5 rounded-md transition font-medium">
-                                            Details
-                                        </button>
                                     </div>
                                 </li>
                             ))}
