@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import BackArrowButton from "@/components/BackArrowButton";
 
 const dayHeaders = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const quickSlotTemplates = [
@@ -216,19 +215,6 @@ export default function FacultyScheduleViewPage() {
   return (
     <main className="min-h-screen bg-[#F7F9FC] px-4 py-10">
       <section className="mx-auto w-full max-w-6xl space-y-6">
-        <div className="mb-4">
-          <BackArrowButton />
-        </div>
-
-        <header className="rounded-lg border border-[#DCE3ED] bg-white p-5 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.12em] text-[#6C8096]">Faculty</p>
-          <h1 className="mt-1 text-2xl font-bold text-[#1F3A5F]">View Schedule</h1>
-          <p className="mt-2 text-sm text-[#5A6C7D]">
-            Click a day to view appointments and department-assigned items. Availability can be set
-            only for today and the next 7 days.
-          </p>
-        </header>
-
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <article className="rounded-lg border border-[#DCE3ED] bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">

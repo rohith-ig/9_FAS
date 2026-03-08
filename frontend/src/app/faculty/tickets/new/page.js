@@ -1,5 +1,4 @@
 import RaiseTicketForm from "@/components/RaiseTicketForm";
-import BackArrowButton from "@/components/BackArrowButton";
 
 export default function FacultyRaiseTicketPage() {
   return (

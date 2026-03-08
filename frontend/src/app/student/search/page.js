@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Search } from "lucide-react";
-import BackArrowButton from "@/components/BackArrowButton";
 import { facultyProfiles } from "./facultyData";
 
 export default function SearchFaculty() {
@@ -18,24 +17,6 @@ export default function SearchFaculty() {
   return (
     <main className="min-h-screen bg-[#F7F9FC] px-4 py-10">
       <section className="mx-auto w-full max-w-5xl">
-        <div className="mb-4">
-          <BackArrowButton />
-        </div>
-        <header className="mb-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1F3A5F] text-white font-semibold">
-            FS
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-[#1F3A5F]">Search Faculty</h1>
-            <p className="text-sm text-[#5A6C7D]">Find faculty by name or designation.</p>
-          </div>
-        </header>
-
-        <section className="mb-6 rounded-lg border border-[#DCE3ED] bg-white p-4 shadow-sm">
-          <p className="text-sm text-[#5A6C7D]">
-            Locate faculty members and view their availability context before booking.
-          </p>
-        </section>
 
         <section className="mb-6 flex flex-col items-stretch gap-3 rounded-lg border border-[#DCE3ED] bg-white p-4 shadow-sm sm:flex-row sm:items-center">
           <div className="relative flex-1">
@@ -52,21 +33,19 @@ export default function SearchFaculty() {
           <div className="flex overflow-hidden rounded-md border border-[#C8D3E0]">
             <button
               onClick={() => setSearchMode("name")}
-              className={`px-4 py-2 text-sm transition ${
-                searchMode === "name"
-                  ? "bg-[#1F3A5F] text-white"
-                  : "bg-white text-[#1F3A5F] hover:bg-[#F3F6FA]"
-              }`}
+              className={`px-4 py-2 text-sm transition ${searchMode === "name"
+                ? "bg-[#1F3A5F] text-white"
+                : "bg-white text-[#1F3A5F] hover:bg-[#F3F6FA]"
+                }`}
             >
               Name
             </button>
             <button
               onClick={() => setSearchMode("designation")}
-              className={`px-4 py-2 text-sm transition ${
-                searchMode === "designation"
-                  ? "bg-[#1F3A5F] text-white"
-                  : "bg-white text-[#1F3A5F] hover:bg-[#F3F6FA]"
-              }`}
+              className={`px-4 py-2 text-sm transition ${searchMode === "designation"
+                ? "bg-[#1F3A5F] text-white"
+                : "bg-white text-[#1F3A5F] hover:bg-[#F3F6FA]"
+                }`}
             >
               Designation
             </button>

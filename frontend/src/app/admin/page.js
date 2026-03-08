@@ -6,7 +6,7 @@ import {
   Database,
   UserPlus,
 } from "lucide-react";
-import BackArrowButton from "@/components/BackArrowButton";
+import { mockFacultyList, mockTickets, studentAppointments } from "@/lib/dummyData";
 
 const features = [
   {
@@ -40,9 +40,6 @@ export default function AdminDashboard() {
   return (
     <main className="min-h-screen bg-[#F7F9FC] px-4 py-10">
       <section className="mx-auto w-full max-w-6xl">
-        <div className="mb-4">
-          <BackArrowButton />
-        </div>
 
         <header className="mb-8 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1F3A5F] text-white font-semibold">
@@ -64,19 +61,25 @@ export default function AdminDashboard() {
             <p className="text-[11px] uppercase tracking-[0.1em] text-[#6E8196]">
               Active Faculty
             </p>
-            <p className="mt-1 text-lg font-semibold text-[#1F3A5F]">42</p>
+            <p className="mt-1 text-lg font-semibold text-[#1F3A5F]">
+              {mockFacultyList.length}
+            </p>
           </div>
           <div className="rounded-lg border border-[#DCE3ED] bg-white px-4 py-3 shadow-sm">
             <p className="text-[11px] uppercase tracking-[0.1em] text-[#6E8196]">
               Open Tickets
             </p>
-            <p className="mt-1 text-lg font-semibold text-[#1F3A5F]">7</p>
+            <p className="mt-1 text-lg font-semibold text-[#1F3A5F]">
+              {mockTickets.filter((t) => t.status === "Open").length}
+            </p>
           </div>
           <div className="rounded-lg border border-[#DCE3ED] bg-white px-4 py-3 shadow-sm">
             <p className="text-[11px] uppercase tracking-[0.1em] text-[#6E8196]">
               Pending Requests
             </p>
-            <p className="mt-1 text-lg font-semibold text-[#1F3A5F]">12</p>
+            <p className="mt-1 text-lg font-semibold text-[#1F3A5F]">
+              {studentAppointments.filter((a) => a.status === "Pending").length}
+            </p>
           </div>
         </section>
 
