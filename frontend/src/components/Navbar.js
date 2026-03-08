@@ -34,7 +34,7 @@ export default function Navbar() {
     student: [
       { label: "Dashboard", href: "/student" },
       { label: "Search Faculty", href: "/student/search" },
-      { label: "Requests", href: "/student/req" },
+      { label: "Requests", href: "/student/history" },
       { label: "Tickets", href: "/student/tickets" },
     ],
     faculty: [
@@ -55,8 +55,8 @@ export default function Navbar() {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-            ? "bg-white/80 backdrop-blur-md shadow-sm border-b border-[#E0E0E0]/50"
-            : "bg-transparent"
+          ? "bg-white/80 backdrop-blur-md shadow-sm border-b border-[#E0E0E0]/50"
+          : "bg-transparent"
           }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,8 +85,8 @@ export default function Navbar() {
                     key={link.href}
                     href={link.href}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                        ? "text-[#1F3A5F] bg-[#F4F7FB]"
-                        : "text-[#5A6C7D] hover:text-[#1F3A5F] hover:bg-[#F8FAFC]"
+                      ? "text-[#1F3A5F] bg-[#F4F7FB]"
+                      : "text-[#5A6C7D] hover:text-[#1F3A5F] hover:bg-[#F8FAFC]"
                       }`}
                   >
                     {link.label}
@@ -162,8 +162,8 @@ export default function Navbar() {
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${isActive
-                        ? "text-[#1F3A5F] bg-[#F4F7FB]"
-                        : "text-[#5A6C7D] hover:text-[#1F3A5F] hover:bg-[#F8FAFC]"
+                      ? "text-[#1F3A5F] bg-[#F4F7FB]"
+                      : "text-[#5A6C7D] hover:text-[#1F3A5F] hover:bg-[#F8FAFC]"
                       }`}
                   >
                     {link.label}

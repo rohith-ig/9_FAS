@@ -16,7 +16,7 @@ export default function SearchFaculty() {
   });
 
   return (
-    <main className="min-h-screen bg-[#F7F9FC] px-4 py-10">
+    <main className="min-h-screen bg-[#F7F9FC] px-4 ">
       <section className="mx-auto w-full max-w-5xl">
         <section className="mb-6 flex flex-col items-stretch gap-3 rounded-lg border border-[#DCE3ED] bg-white p-4 shadow-sm sm:flex-row sm:items-center">
           <div className="relative flex-1">
