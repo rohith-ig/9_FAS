@@ -46,7 +46,7 @@ export default function Navbar() {
     admin: [
       { label: "Dashboard", href: "/admin" },
       { label: "Manage Tickets", href: "/admin/tickets" },
-      { label: "User Accounts", href: "/admin/user"}
+      { label: "User Accounts", href: "/admin/users"}
     ]
   };
 
