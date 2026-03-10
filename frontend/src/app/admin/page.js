@@ -28,6 +28,7 @@ const features = [
     desc: "Assign courses, time slots, and rooms without conflicts.",
     icon: CalendarClock,
     action: "Set Timetable",
+    href: "/admin/timetableset",
   },
   {
     title: "System Maintenance",
