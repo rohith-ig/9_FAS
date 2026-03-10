@@ -22,8 +22,6 @@ const HandleAuth = () => {
                 } else if (role === 'FACULTY') {
                     router.replace('/faculty/');
                 } else {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('userId');
                     router.replace('/');
                     return
                 }
@@ -32,8 +30,6 @@ const HandleAuth = () => {
             }
         } catch (error) {
             console.error('Error handling authentication:', error);
-            localStorage.removeItem('token');
-            localStorage.removeItem('userId');
             router.replace('/');
         }
     }, []);
