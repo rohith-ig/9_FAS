@@ -12,6 +12,11 @@ export default function Navbar() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const handleSignOut = () => {
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    window.location.href = "/";
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -130,8 +135,8 @@ export default function Navbar() {
                     )}
 
                     <Link
-                      href="/"
-                      onClick={() => setProfileMenuOpen(false)}
+                      href = "#"
+                      onClick={() => handleSignOut()}
                       className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors mt-1"
                     >
                       <LogOut size={16} /> Sign Out
