@@ -17,7 +17,7 @@ const getAvailability = async (req, res) => {
       },
       select: {
         facultyId: true,
-        facultyProfile : {
+        faculty : {
             select : {
                 user : {
                     select : {
@@ -36,7 +36,7 @@ const getAvailability = async (req, res) => {
     const appointments = await prisma.appointmentRequest.findMany({
       where: {
         ...(facultyId && { facultyId }),
-        status: "CONFIRMED",
+        status: "APPROVED",
         start: {
           gte: now,
         },
@@ -48,7 +48,6 @@ const getAvailability = async (req, res) => {
       },
     });
     const freeSlots = subtractIntervals(availability, appointments);
-
     res.json(freeSlots);
   } catch (error) {
     console.error("Error fetching availability:", error);
@@ -105,7 +104,7 @@ function subtractIntervals(availabilities, appointments) {
         facultyId: slot.facultyId,
         start: interval.start,
         end: interval.end,
-        facultyProfile: slot.facultyProfile
+        faculty: slot.faculty
       });
     }
   }

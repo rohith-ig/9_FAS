@@ -26,7 +26,7 @@ export default function BookAppointmentPage() {
       const response = await api.get(`/avail?facultyId=${id}`);
       setAvailabilities(response.data);
       if (response.data.length > 0) {
-         setFaculty(response.data[0].facultyProfile);
+         setFaculty(response.data[0].faculty);
       }
     } catch (error) {
       console.error("Failed to fetch availability:", error);

@@ -20,13 +20,13 @@ export default function SearchFaculty() {
       const seenIds = new Set();
       
       for (const slot of response.data) {
-        if (slot.facultyProfile && !seenIds.has(slot.facultyId)) {
+        if (slot.faculty && !seenIds.has(slot.facultyId)) {
           seenIds.add(slot.facultyId);
           uniqueFaculties.push({
             id: slot.facultyId,
-            name: slot.facultyProfile.user?.name,
-            designation: slot.facultyProfile.designation,
-            department: slot.facultyProfile.department
+            name: slot.faculty.user?.name,
+            designation: slot.faculty.designation,
+            department: slot.faculty.department
           });
         }
       }
