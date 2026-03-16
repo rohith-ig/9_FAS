@@ -82,28 +82,23 @@ export default function FacultyDashboard() {
     }, []);
 
 
-    const pendingRequests = facultyAppointments.filter(apt => apt.status === 'Pending');
+    const pendingRequests = [...facultyAppointments]
+        .filter(apt => apt.status === 'PENDING')
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || b.id - a.id)
+        .slice(0, 4);
+    
+    const handleStatusUpdate = async (id, status) => {
+        try {
+            await api.post(`/appmt/update/${id}`, { status });
+            setFacultyAppointments(prev => prev.filter(apt => apt.id !== id));
+        } catch (error) {
+            console.error('Failed to update status:', error);
+        }
+    };
+
 
     return (
         <div className="mx-auto w-full max-w-6xl px-4">
-            {/* Header Section */}
-            <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-[#1F3A5F]">
-                        Welcome back, Faculty!
-                    </h1>
-                    <p className="text-sm text-[#5A6C7D] mt-1">
-                        Manage your schedule, respond to student requests, and oversee your appointments.
-                    </p>
-                </div>
-                <Link
-                    href="/faculty/list"
-                    className="inline-flex items-center gap-2 rounded-md bg-[#1F3A5F] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#2A4A75]"
-                >
-                    View All Requests <ArrowRight size={16} />
-                </Link>
-            </header>
-
             {/* Quick Actions Grid */}
             <section className="mb-10">
                 <h2 className="mb-4 text-lg font-semibold text-[#1F3A5F]">Quick Actions</h2>
@@ -162,33 +157,40 @@ export default function FacultyDashboard() {
                     </div>
 
                     <div className="bg-white rounded-xl border border-[#DCE3ED] shadow-sm overflow-hidden">
-                        {facultyAppointments.length > 0 ? (
-                            <ul className="divide-y divide-[#DCE3ED]">
-                                {facultyAppointments.filter(apt => apt.status === 'PENDING').map((apt) => (
-                                    <li key={apt.id} className="p-5 hover:bg-[#F8FAFC] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                        <div className="flex items-start gap-4">
-                                            <div className="bg-[#4A6FA5]/10 rounded-lg p-3 text-center min-w-[60px] border border-[#4A6FA5]/20">
-                                                <span className="block text-xs font-bold text-[#4A6FA5] uppercase">{apt.start.split(' ')[0]}</span>
-                                                <span className="block text-lg font-bold text-[#1F3A5F]">{apt.end.split(' ')[1]}</span>
+                        {pendingRequests.length > 0 ? (
+                            <>
+                                <ul className="divide-y divide-[#DCE3ED]">
+                                    {pendingRequests.map((apt) => (
+                                        <li key={apt.id} className="p-5 hover:bg-[#F8FAFC] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                            <div className="flex items-start gap-4">
+                                                <div className="bg-[#4A6FA5]/10 rounded-lg p-3 text-center min-w-[60px] border border-[#4A6FA5]/20">
+                                                    <span className="block text-xs font-bold text-[#4A6FA5] uppercase">{new Date(apt.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                                    <span className="block text-lg font-bold text-[#1F3A5F]">{new Date(apt.start).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-[#1F3A5F] text-lg">{apt.student.user.name} <span className="text-sm font-normal text-[#5A6C7D]">({apt.student.rollNumber})</span></h4>
+                                                    <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
+                                                        <Clock size={14} /> {new Date(apt.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {apt.purpose}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h4 className="font-semibold text-[#1F3A5F] text-lg">{apt.student.user.name} <span className="text-sm font-normal text-[#5A6C7D]">({apt.student.rollNumber})</span></h4>
-                                                <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
-                                                    <Clock size={14} /> {new Date(apt.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {apt.purpose}
-                                                </p>
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={() => handleStatusUpdate(apt.id, 'APPROVED')} className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium transition cursor-pointer">
+                                                    Approve
+                                                </button>
+                                                <button onClick={() => handleStatusUpdate(apt.id, 'REJECTED')} className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-md text-sm font-medium transition cursor-pointer">
+                                                    Reject
+                                                </button>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium transition cursor-pointer">
-                                                Approve
-                                            </button>
-                                            <button className="border border-[#DCE3ED] bg-white hover:bg-gray-50 text-[#5A6C7D] px-4 py-2 rounded-md text-sm font-medium transition cursor-pointer">
-                                                Review
-                                            </button>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <div className="p-4 text-center border-t border-[#DCE3ED] bg-[#FBFCFE]">
+                                    <Link href="/faculty/list" className="text-[#4A6FA5] text-sm font-semibold hover:underline">
+                                        View All Pending Requests →
+                                    </Link>
+                                </div>
+                            </>
                         ) : (
                             <div className="p-8 text-center text-[#5A6C7D]">
                                 <CalendarClock className="mx-auto h-12 w-12 text-[#DCE3ED] mb-3" />
