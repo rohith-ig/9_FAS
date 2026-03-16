@@ -3,7 +3,7 @@ const prisma = require('../config/database.js');
 
 const getAvailability = async (req, res) => {
   try {
-    const facultyId = req.query.facultyId || req.user?.facultyProfile?.id;
+    const facultyId = Number(req.query.facultyId || req.user?.facultyProfile?.id);
     const now = new Date();
     const availability = await prisma.facultyAvailability.findMany({
       where: {
