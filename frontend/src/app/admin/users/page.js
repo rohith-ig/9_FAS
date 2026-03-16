@@ -18,7 +18,7 @@ export default function ManageAccountsPage() {
   }, []);
 
   const fetchUsers = async () => {
-    const res = await fetch("http://localhost:6969/users");
+    const res = await fetch("http://localhost:6969/api/users");
     const data = await res.json();
     setUsers(data);
   };
@@ -49,7 +49,7 @@ export default function ManageAccountsPage() {
 const handleAddUser = async () => {
   if (!newUser.name || !newUser.email) return;
 
-  const res = await fetch("http://localhost:6969/users/add", {
+  const res = await fetch("http://localhost:6969/api/users/add", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -71,7 +71,7 @@ const handleAddUser = async () => {
 
 const handleDelete = async (id) => {
 
-  await fetch(`http://localhost:6969/users/${id}`, {
+  await fetch(`http://localhost:6969/api/users/${id}`, {
     method: "DELETE",
   });
 
