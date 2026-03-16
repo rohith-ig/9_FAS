@@ -81,7 +81,7 @@ export default function FacultyAppointmentList() {
         <div className="bg-white border border-[#DCE3ED] rounded-xl shadow-sm overflow-hidden">
         
         {/* Tabs */}
-        <div className="flex border-b border-[#DCE3ED] bg-[#FBFCFE]">
+        <div className="flex bg-[#FBFCFE]">
           <button
             onClick={() => setActiveTab("pending")}
             className={`flex-1 px-4 py-3.5 text-sm font-semibold transition bg-transparent \${
