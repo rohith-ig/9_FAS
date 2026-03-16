@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "../../../../axios";
-import { Loader2, ArrowLeft, Calendar, Clock, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar, Clock, CheckCircle2, User, BookOpen } from "lucide-react";
 import Link from "next/link";
 
 export default function BookAppointmentPage() {
@@ -100,31 +100,43 @@ export default function BookAppointmentPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8">
-      
-      <Link href="/student/search" className="inline-flex items-center gap-2 text-sm font-semibold text-[#4A6FA5] hover:text-[#1F3A5F] transition mb-6">
-          <ArrowLeft size={16} /> Back to Search
-      </Link>
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 h-[calc(100vh-64px)] overflow-hidden flex flex-col">
+      <div className="mb-4">
+          <Link href="/student/search" className="inline-flex items-center gap-2 text-sm font-semibold text-[#4A6FA5] hover:text-[#1F3A5F] transition">
+              <ArrowLeft size={16} /> Back to Search
+          </Link>
+      </div>
 
       {success ? (
-         <div className="bg-white border border-emerald-200 rounded-2xl p-8 text-center shadow-md animate-fade-in">
-             <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500 mb-4" />
-             <h2 className="text-2xl font-bold text-[#1F3A5F] mb-2">Booking Request Sent!</h2>
-             <p className="text-[#5A6C7D] mb-4">Your appointment request has been submitted successfully and is awaiting faculty approval.</p>
-             <p className="text-xs text-gray-400">Redirecting to Dashboard...</p>
+         <div className="flex-1 flex items-center justify-center">
+             <div className="bg-white border border-emerald-200 rounded-2xl p-8 text-center shadow-md animate-fade-in max-w-md">
+                 <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500 mb-4" />
+                 <h2 className="text-2xl font-bold text-[#1F3A5F] mb-2">Booking Request Sent!</h2>
+                 <p className="text-[#5A6C7D] mb-4">Your request has been submitted successfully and is awaiting approval.</p>
+                 <p className="text-xs text-gray-400">Redirecting to Dashboard...</p>
+             </div>
          </div>
       ) : (
-         <div className="bg-white border border-[#DCE3ED] rounded-2xl shadow-sm p-6 md:p-8">
-             <header className="mb-6 border-b border-[#E8EEF5] pb-4">
-                 <p className="text-sm font-bold text-[#4A6FA5] tracking-wider uppercase">{faculty?.designation}</p>
-                 <h1 className="text-2xl font-bold text-[#1F3A5F] mt-1">{faculty?.user?.name}</h1>
-                 <p className="text-sm text-[#5A6C7D] mt-1">{faculty?.department}</p>
-             </header>
+         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+             
+             {/* Left Panel - Faculty & Slots */}
+             <div className="lg:col-span-7 flex flex-col overflow-hidden bg-white border border-[#DCE3ED] rounded-2xl shadow-sm p-5">
+                 <header className="mb-4 flex items-start gap-4 border-b border-[#E8EEF5] pb-4">
+                     <div className="h-12 w-12 rounded-xl bg-[#F0F5FA] flex items-center justify-center text-[#1F3A5F] border border-[#DCE3ED] shadow-sm">
+                         <User size={24} />
+                     </div>
+                     <div>
+                         <p className="text-xs font-bold text-[#4A6FA5] tracking-wider uppercase">{faculty?.designation || 'Faculty'}</p>
+                         <h1 className="text-xl font-bold text-[#1F3A5F] mt-0.5">{faculty?.user?.name}</h1>
+                         <p className="text-sm text-[#5A6C7D]">{faculty?.department}</p>
+                     </div>
+                 </header>
 
-             <form onSubmit={handleSubmit} className="space-y-6">
-                 <div>
-                     <label className="block text-sm font-bold text-[#1F3A5F] mb-3">Select available slot:</label>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto p-1">
+                 <div className="flex-1 overflow-hidden flex flex-col">
+                     <label className="block text-sm font-bold text-[#1F3A5F] mb-3 flex items-center gap-2">
+                         <Calendar size={16} className="text-[#4A6FA5]" /> Select a time slot
+                     </label>
+                     <div className="flex-1 overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 gap-2.5 content-start">
                           {availabilities.map((slot, index) => {
                               const start = new Date(slot.start);
                               const end = new Date(slot.end);
@@ -135,95 +147,119 @@ export default function BookAppointmentPage() {
                                       type="button"
                                       key={index}
                                       onClick={() => handleSlotSelect(slot)}
-                                      className={`p-3 border rounded-xl text-left transition ${
+                                      className={`p-3 border rounded-xl text-left transition-all duration-150 flex flex-col justify-between h-24 ${
                                           isSelected 
-                                          ? 'border-[#1F3A5F] bg-[#1F3A5F]/5 ring-2 ring-[#1F3A5F]' 
-                                          : 'border-[#DCE3ED] hover:bg-gray-50'
+                                          ? 'border-[#1F3A5F] bg-[#1F3A5F]/5 ring-2 ring-[#1F3A5F] shadow-sm' 
+                                          : 'border-[#DCE3ED] bg-[#FBFCFE] hover:border-[#1F3A5F]/40 hover:bg-white'
                                       }`}
                                   >
-                                      <p className="text-[14px] font-bold text-[#1F3A5F]">
-                                          {start.toLocaleDateString('en-US', { month: 'short', day: 'numeric',   year: 'numeric'  })}
-                                      </p>
-                                      <p className="text-xs font-semibold text-[#4A6FA5] mt-1">
-                                          {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                      </p>
+                                      <div>
+                                          <p className="text-[14px] font-bold text-[#1F3A5F]">
+                                              {start.toLocaleDateString('en-US', { month: 'short', day: 'numeric',   year: 'numeric'  })}
+                                          </p>
+                                          <p className="text-xs font-semibold text-[#4A6FA5] mt-1 flex items-center gap-1">
+                                              <Clock size={12} /> {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                          </p>
+                                      </div>
+                                      <div className="text-right w-full">
+                                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-[#1F3A5F] text-white' : 'bg-gray-100 text-[#5A6C7D]'}`}>
+                                              {(end - start) / 60000} min max
+                                          </span>
+                                      </div>
                                   </button>
                               );
                           })}
                      </div>
                  </div>
+             </div>
 
-                 <div>
-                     <label className="block text-sm font-bold text-[#1F3A5F] mb-2">Purpose of Meeting</label>
-                     <input 
-                         type="text"
-                         required
-                         value={purpose}
-                         onChange={(e) => setPurpose(e.target.value)}
-                         placeholder="e.g., Doubts regarding assignment, Project Review"
-                         className="w-full rounded-lg border border-[#DCE3ED] px-4 py-2.5 text-sm text-[#1F3A5F] outline-none ring-[#A8BCD6] focus:ring-2"
-                     />
+             {/* Right Panel - Form Details */}
+             <div className="lg:col-span-5 flex flex-col overflow-hidden bg-white border border-[#DCE3ED] rounded-2xl shadow-sm p-5">
+                 <div className="border-b border-[#E8EEF5] pb-3 mb-4 flex items-center gap-2">
+                     <BookOpen size={20} className="text-[#1F3A5F]" />
+                     <h2 className="text-lg font-bold text-[#1F3A5F]">Request Details</h2>
                  </div>
 
-                 {selectedSlot && (
-                     <div>
-                         <label className="block text-sm font-bold text-[#1F3A5F] mb-1">Duration (minutes)</label>
-                         <input 
-                             type="number"
-                             required
-                             value={duration}
-                             min={5}
-                             max={(new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000}
-                             onChange={(e) => setDuration(Math.min(e.target.value, (new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000))}
-                             className="w-full rounded-lg border border-[#DCE3ED] px-4 py-2.5 text-sm text-[#1F3A5F] outline-none ring-[#A8BCD6] focus:ring-2"
-                         />
-                         <p className="text-xs text-gray-400 mt-1">Available range: 5 to {(new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000} minutes</p>
-                     </div>
-                 )}
-
-                 <div>
-                     <label className="block text-sm font-bold text-[#1F3A5F] mb-2">Meeting Options</label>
-                     <div className="flex flex-col gap-2 p-3 bg-gray-50 border border-[#DCE3ED] rounded-xl text-sm">
-                         <label className="flex items-center gap-2 text-[#4A6FA5] font-medium cursor-pointer">
+                 <form onSubmit={handleSubmit} className="flex-1 flex flex-col justify-between overflow-y-auto space-y-4 pr-1">
+                     <div className="space-y-4">
+                         <div>
+                             <label className="block text-xs font-bold text-[#1F3A5F] mb-1.5">Purpose of Meeting</label>
                              <input 
-                                 type="checkbox" 
-                                 checked={isGroupMeeting} 
-                                 onChange={(e) => setIsGroupMeeting(e.target.checked)} 
-                                 className="accent-[#1F3A5F]"
+                                 type="text"
+                                 required
+                                 value={purpose}
+                                 onChange={(e) => setPurpose(e.target.value)}
+                                 placeholder="e.g., Project Review, Doubts"
+                                 className="w-full rounded-lg border border-[#DCE3ED] px-3.5 py-2 text-sm text-[#1F3A5F] outline-none ring-[#A8BCD6] focus:ring-1 focus:border-[#1F3A5F] transition"
                              />
-                             Group Meeting
-                         </label>
-                         <label className="flex items-center gap-2 text-[#4A6FA5] font-medium cursor-pointer">
-                             <input 
-                                 type="checkbox" 
-                                 checked={isRecurringMeeting} 
-                                 onChange={(e) => setIsRecurringMeeting(e.target.checked)} 
-                                 className="accent-[#1F3A5F]"
+                         </div>
+
+                         {selectedSlot && (
+                             <div>
+                                 <label className="block text-xs font-bold text-[#1F3A5F] mb-1.5">Duration (Minutes)</label>
+                                 <div className="flex items-center gap-2">
+                                     <input 
+                                         type="number"
+                                         required
+                                         value={duration}
+                                         min={5}
+                                         max={(new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000}
+                                         onChange={(e) => setDuration(Math.min(e.target.value, (new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000))}
+                                         className="w-24 rounded-lg border border-[#DCE3ED] px-3 py-1.5 text-sm text-[#1F3A5F] font-bold outline-none text-center"
+                                     />
+                                     <span className="text-xs text-[#5A6C7D]">
+                                         Range: 5 to {(new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000} mins
+                                     </span>
+                                 </div>
+                             </div>
+                         )}
+
+                         <div>
+                             <label className="block text-xs font-bold text-[#1F3A5F] mb-1.5">Meeting Options</label>
+                             <div className="grid grid-cols-2 gap-2 text-xs">
+                                 <label className={`flex items-center justify-center gap-1.5 p-2 border rounded-xl font-semibold cursor-pointer transition ${isGroupMeeting ? 'bg-[#1F3A5F] text-white border-[#1F3A5F]' : 'bg-[#FBFCFE] text-[#4A6FA5] border-[#DCE3ED] hover:bg-gray-50'}`}>
+                                     <input 
+                                         type="checkbox" 
+                                         checked={isGroupMeeting} 
+                                         onChange={(e) => setIsGroupMeeting(e.target.checked)} 
+                                         className="sr-only"
+                                     />
+                                     Group Meet
+                                 </label>
+                                 <label className={`flex items-center justify-center gap-1.5 p-2 border rounded-xl font-semibold cursor-pointer transition ${isRecurringMeeting ? 'bg-[#1F3A5F] text-white border-[#1F3A5F]' : 'bg-[#FBFCFE] text-[#4A6FA5] border-[#DCE3ED] hover:bg-gray-50'}`}>
+                                     <input 
+                                         type="checkbox" 
+                                         checked={isRecurringMeeting} 
+                                         onChange={(e) => setIsRecurringMeeting(e.target.checked)} 
+                                         className="sr-only"
+                                     />
+                                     Recurring
+                                 </label>
+                             </div>
+                         </div>
+
+                         <div>
+                             <label className="block text-xs font-bold text-[#1F3A5F] mb-1.5">Note (Optional)</label>
+                             <textarea 
+                                 value={note}
+                                 onChange={(e) => setNote(e.target.value)}
+                                 placeholder="Context or brief description..."
+                                 className="w-full min-h-[80px] text-xs rounded-lg border border-[#DCE3ED] px-3 py-2 text-[#1F3A5F] outline-none focus:border-[#1F3A5F] resize-none"
                              />
-                             Recurring Meeting
-                         </label>
+                         </div>
                      </div>
-                 </div>
 
-                 <div>
-                     <label className="block text-sm font-bold text-[#1F3A5F] mb-2">Note for Faculty (Optional)</label>
-                     <textarea 
-                         value={note}
-                         onChange={(e) => setNote(e.target.value)}
-                         placeholder="Add further details or context here..."
-                         className="w-full min-h-[100px] rounded-lg border border-[#DCE3ED] px-4 py-2.5 text-sm text-[#1F3A5F] outline-none ring-[#A8BCD6] focus:ring-2 resize-none"
-                     />
-                 </div>
+                     <button
+                         type="submit"
+                         disabled={submitting || !selectedSlot}
+                         className="w-full py-2.5 mt-2 rounded-xl bg-[#1F3A5F] text-white font-bold text-sm shadow-md hover:bg-[#2A4A75] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                     >
+                         {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                         {submitting ? "Booking..." : "Request Appointment"}
+                     </button>
+                 </form>
+             </div>
 
-                 <button
-                     type="submit"
-                     disabled={submitting}
-                     className="w-full py-3 rounded-xl bg-[#1F3A5F] text-white font-bold text-sm tracking-wide shadow-md hover:bg-[#2A4A75] transition flex items-center justify-center gap-2 disabled:opacity-50"
-                 >
-                     {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                     {submitting ? "Booking..." : "Request Appointment"}
-                 </button>
-             </form>
          </div>
       )}
 
