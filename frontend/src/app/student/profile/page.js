@@ -1,45 +1,9 @@
-"use client";
-
-import { User, Mail, BookOpen, Phone, ShieldCheck, Bell, AcademicCap, Hash, LogOut, Loader2 } from "lucide-react";
+import { User, Mail, BookOpen, Phone, ShieldCheck, Bell, AcademicCap, Hash, LogOut } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import api from "../../../axios.js";
 
 export default function StudentProfilePage() {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await api.get('/user');
-                setUser(response.data);
-            } catch (error) {
-                console.error("Failed to fetch user:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchUser();
-    }, []);
-
-    const handleLogout = () => {
-        // Clear tokens or trigger redirect
-        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        window.location.href = "/login";
-    };
-
-    if (loading) {
-        return (
-            <div className="flex h-[calc(100vh-100px)] w-full flex-col items-center justify-center gap-3 text-[#5A6C7D]">
-                <Loader2 className="h-10 w-10 animate-spin text-[#1F3A5F]" />
-                <p className="text-sm font-medium">Loading Profile Data...</p>
-            </div>
-        );
-    }
-
     return (
-        <div className="relative min-h-[calc(100vh-64px)] bg-[#F7F9FC] mx-auto w-full max-w-4xl px-4 py-8">
+        <div className="mx-auto w-full max-w-4xl px-4 py-8">
 
             <header className="mb-8">
                 <h1 className="text-3xl font-bold text-[#1F3A5F]">My Profile</h1>
@@ -51,7 +15,7 @@ export default function StudentProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                 {/* Left Column - ID Card */}
-                <div className="md:col-span-1 rounded-2xl border border-[#DCE3ED] bg-white shadow-sm overflow-hidden flex flex-col items-center h-fit">
+                <div className="md:col-span-1 rounded-2xl border border-[#DCE3ED] bg-white shadow-sm overflow-hidden flex flex-col items-center">
                     <div className="w-full h-24 bg-[#1F3A5F] relative"></div>
                     <div className="relative -mt-12 mb-3">
                         <div className="h-24 w-24 rounded-full bg-white p-1 border border-[#DCE3ED] shadow-sm">
@@ -61,25 +25,27 @@ export default function StudentProfilePage() {
                         </div>
                     </div>
 
-                    <h2 className="text-xl font-bold text-[#1F3A5F]">{user?.name}</h2>
-                    <p className="text-sm font-medium text-[#4A6FA5] mb-2">{user?.studentProfile?.department || 'Department Not Set'}</p>
+                    <h2 className="text-xl font-bold text-[#1F3A5F]">Ada Lovelace</h2>
+                    <p className="text-sm font-medium text-[#4A6FA5] mb-2">Computer Science & Engineering</p>
+
+
 
                     <div className="w-full border-t border-[#F0F4F8] p-4 flex flex-col gap-3 text-sm">
                         <div className="flex items-center gap-3 text-[#5A6C7D]">
                             <Hash size={16} className="text-[#A8BCD6]" />
-                            <span className="font-medium">{user?.studentProfile?.rollNumber}</span>
+                            <span className="font-medium">B230001CS</span>
                         </div>
                         <div className="flex items-center gap-3 text-[#5A6C7D]">
                             <Mail size={16} className="text-[#A8BCD6]" />
-                            <span className="truncate">{user?.email}</span>
+                            <span className="truncate">ada@nitc.ac.in</span>
                         </div>
 
-                        <button
-                            onClick={handleLogout}
-                            className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 cursor-pointer"
+                        <Link
+                            href="/"
+                            className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100"
                         >
                             <LogOut size={16} /> Log Out
-                        </button>
+                        </Link>
                     </div>
                 </div>
 
@@ -98,8 +64,8 @@ export default function StudentProfilePage() {
                                 <p className="font-medium text-[#1F3A5F]">Semester 6</p>
                             </div>
                             <div>
-                                <label className="block text-xs text-[#5A6C7D] mb-1">Department</label>
-                                <p className="font-medium text-[#1F3A5F]">{user?.studentProfile?.department || 'N/A'}</p>
+                                <label className="block text-xs text-[#5A6C7D] mb-1">Academic Advisor</label>
+                                <p className="font-medium text-[#1F3A5F]">Dr. Alan Turing</p>
                             </div>
                             <div>
                                 <label className="block text-xs text-[#5A6C7D] mb-1">Enrollment Status</label>
