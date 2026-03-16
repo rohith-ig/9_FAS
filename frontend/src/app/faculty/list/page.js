@@ -53,18 +53,32 @@ export default function FacultyAppointmentList() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-4">
+    <div className="relative min-h-[calc(100vh-64px)] flex py-12 items-center justify-center bg-[#F7F9FC] px-4 overflow-hidden">
       
-      <header className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1F3A5F]">Appointment Requests</h1>
-          <p className="text-sm text-[#5A6C7D] mt-1">
-            Review pending requests and manage your scheduled appointments
-          </p>
-        </div>
-      </header>
+      {/* Background blobs */}
+      <div className="absolute -top-32 -left-32 w-[30rem] h-[30rem] bg-[#4A6FA5]/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-[30rem] h-[30rem] bg-[#2A4A75]/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="bg-white border border-[#DCE3ED] rounded-xl shadow-sm overflow-hidden">
+      {/* Main Card */}
+      <div className="relative w-full max-w-[1000px] bg-white border border-[#E0E0E0] rounded-2xl shadow-md p-8 md:p-12 z-10 w-full">
+
+        {/* Header */}
+        <div className="flex items-center space-x-4 mb-3">
+          <div className="w-12 h-12 flex items-center justify-center bg-[#4A6FA5] text-white font-bold rounded-sm text-lg">
+            FS
+          </div>
+          <h1 className="text-3xl font-bold text-[#1F3A5F]">Faculty Scheduler</h1>
+        </div>
+
+        <p className="text-lg text-[#2A4A75] mt-2 font-medium">
+          Appointment Requests
+        </p>
+
+        <p className="text-base text-[#5A6C7D] mt-1 mb-6">
+          Review pending requests and manage your scheduled appointments
+        </p>
+
+        <div className="bg-white border border-[#DCE3ED] rounded-xl shadow-sm overflow-hidden">
         
         {/* Tabs */}
         <div className="flex border-b border-[#DCE3ED] bg-[#FBFCFE]">
@@ -140,6 +154,7 @@ export default function FacultyAppointmentList() {
             )
           )}
         </div>
+      </div>
       </div>
     </div>
   );
