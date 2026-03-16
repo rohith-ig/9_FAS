@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import api from "../../../axios";
-import { Loader2, CalendarClock, Clock, Check, X } from "lucide-react";
+import { Loader2, CalendarClock, Clock, Eye } from "lucide-react";
+import Link from "next/link";
 
 export default function FacultyAppointmentList() {
   const [activeTab, setActiveTab] = useState("pending");
@@ -26,18 +27,7 @@ export default function FacultyAppointmentList() {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  const handleStatusUpdate = async (id, status) => {
-    try {
-      await api.post(`/appmt/update/${id}`, { status });
-      await fetchAppointments();
-    } catch (error) {
-      console.error("Failed to update status:", error);
-    }
-  };
-
-  const handleReschedule = (appointment) => {
-    alert(`Reschedule request feature coming soon. (Student: ${appointment.student.user.name})`);
-  };
+  
 
   const pendingAppointments = appointments.filter(a => a.status === 'PENDING');
   const scheduledAppointments = appointments.filter(a => a.status === 'APPROVED');
@@ -122,7 +112,7 @@ export default function FacultyAppointmentList() {
             pendingAppointments.length ? (
               <ul className="divide-y divide-[#DCE3ED]">
                 {pendingAppointments.map((appt) => (
-                  <AppointmentRow key={appt.id} data={appt} type="pending" onUpdate={handleStatusUpdate} />
+                  <AppointmentRow key={appt.id} data={appt} type="pending"  />
                 ))}
               </ul>
             ) : (
@@ -134,7 +124,7 @@ export default function FacultyAppointmentList() {
             scheduledAppointments.length ? (
               <ul className="divide-y divide-[#DCE3ED]">
                 {scheduledAppointments.map((appt) => (
-                  <AppointmentRow key={appt.id} data={appt} type="scheduled" onReschedule={() => handleReschedule(appt)} />
+                  <AppointmentRow key={appt.id} data={appt} type="scheduled"  />
                 ))}
               </ul>
             ) : (
@@ -160,7 +150,7 @@ export default function FacultyAppointmentList() {
   );
 }
 
-function AppointmentRow({ data, type, onUpdate, onReschedule }) {
+function AppointmentRow({ data, type }) {
   const startDate = new Date(data.start);
   const timeString = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const dateString = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -178,32 +168,12 @@ function AppointmentRow({ data, type, onUpdate, onReschedule }) {
                   <Clock size={14} /> Duration: {(new Date(data.end) - new Date(data.start)) / 60000} min
               </p>
               <p className="text-sm text-[#5A6C7D] mt-1 space-x-1">
-                 <span className="font-medium text-[#1F3A5F]">Purpose:</span> <span>{data.purpose}</span>
+                 <span className="font-medium text-[#1F3A5F]">Purpose:</span> <span className="truncate max-w-[200px] sm:max-w-[400px] inline-block align-bottom">{data.purpose}</span>
               </p>
           </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-         {type === "pending" && (
-            <>
-               <button onClick={() => onUpdate(data.id, 'APPROVED')} className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 px-4 py-2 rounded-md text-sm font-semibold transition cursor-pointer shadow-sm">
-                   <Check size={16} /> Approve
-               </button>
-               <button onClick={() => onUpdate(data.id, 'REJECTED')} className="flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-4 py-2 rounded-md text-sm font-semibold transition cursor-pointer shadow-sm">
-                   <X size={16} /> Reject
-               </button>
-            </>
-         )}
-
-         {type === "scheduled" && (
-            <button
-              onClick={onReschedule}
-              className="px-4 py-2 text-sm font-medium border border-[#C8D3E0] text-[#2A4A75] bg-white rounded-md hover:bg-[#F3F6FA] transition"
-            >
-              Request Reschedule
-            </button>
-         )}
-
+      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
          {type === "history" && (
             <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
               data.status === 'REJECTED' || data.status === 'CANCELLED' 
@@ -213,6 +183,13 @@ function AppointmentRow({ data, type, onUpdate, onReschedule }) {
               {data.status}
             </span>
          )}
+         
+         <Link 
+            href={`/faculty/view/${data.id}`}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold border-2 border-[#1F3A5F] text-[#1F3A5F] bg-white rounded-lg hover:bg-[#1F3A5F] hover:text-white transition shadow-sm"
+         >
+             <Eye size={16} /> View Details
+         </Link>
       </div>
     </li>
   );
