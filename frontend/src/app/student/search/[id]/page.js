@@ -15,6 +15,7 @@ export default function BookAppointmentPage() {
   const [loading, setLoading] = useState(true);
   
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState(30);
   const [purpose, setPurpose] = useState("");
   const [note, setNote] = useState("");
@@ -27,9 +28,10 @@ export default function BookAppointmentPage() {
     try {
       setLoading(true);
       const response = await api.get(`/avail?facultyId=${id}`);
-      setAvailabilities(response.data);
-      if (response.data.length > 0) {
-         setFaculty(response.data[0].faculty);
+      const sortedSlots = response.data.sort((a, b) => new Date(b.start) - new Date(a.start));
+      setAvailabilities(sortedSlots);
+      if (sortedSlots.length > 0) {
+         setFaculty(sortedSlots[0].faculty);
       }
     } catch (error) {
       console.error("Failed to fetch availability:", error);
@@ -44,7 +46,9 @@ export default function BookAppointmentPage() {
 
   const handleSlotSelect = (slot) => {
     setSelectedSlot(slot);
-    const maxDur = (new Date(slot.end) - new Date(slot.start)) / 60000;
+    const startObj = new Date(slot.start);
+    setStartTime(`${String(startObj.getHours()).padStart(2, '0')}:${String(startObj.getMinutes()).padStart(2, '0')}`);
+    const maxDur = (new Date(slot.end) - startObj) / 60000;
     setDuration(Math.min(30, maxDur));
   };
 
@@ -57,9 +61,13 @@ export default function BookAppointmentPage() {
     setSubmitting(true);
     try {
         const fullNote = `${note}${isGroupMeeting ? ' [Group Meeting]' : ''}${isRecurringMeeting ? ' [Recurring Meeting]' : ''}`.trim();
+        const startFull = new Date(selectedSlot.start);
+        const [h, m] = startTime.split(':').map(Number);
+        startFull.setHours(h, m, 0, 0);
+
         const payload = {
             facultyId: parseInt(id),
-            start: selectedSlot.start,
+            start: startFull.toISOString(),
             duration: parseInt(duration),
             purpose,
             note: fullNote || undefined
@@ -199,9 +207,21 @@ export default function BookAppointmentPage() {
                          </div>
 
                          {selectedSlot && (
-                             <div>
-                                 <label className="block text-xs font-bold text-[#1F3A5F] mb-1.5">Duration (Minutes)</label>
-                                 <div className="flex items-center gap-2">
+                             <div className="flex gap-3">
+                                 <div className="flex-1">
+                                     <label className="block text-xs font-bold text-[#1F3A5F] mb-1">Starting Time</label>
+                                     <input 
+                                         type="time"
+                                         required
+                                         value={startTime}
+                                         min={`${String(new Date(selectedSlot.start).getHours()).padStart(2, '0')}:${String(new Date(selectedSlot.start).getMinutes()).padStart(2, '0')}`}
+                                         max={`${String(new Date(selectedSlot.end).getHours()).padStart(2, '0')}:${String(new Date(selectedSlot.end).getMinutes()).padStart(2, '0')}`}
+                                         onChange={(e) => setStartTime(e.target.value)}
+                                         className="w-full rounded-lg border border-[#DCE3ED] px-3 py-1.5 text-sm text-[#1F3A5F] font-semibold outline-none focus:border-[#1F3A5F]"
+                                     />
+                                 </div>
+                                 <div className="flex-1">
+                                     <label className="block text-xs font-bold text-[#1F3A5F] mb-1">Duration (Mins)</label>
                                      <input 
                                          type="number"
                                          required
@@ -209,11 +229,8 @@ export default function BookAppointmentPage() {
                                          min={5}
                                          max={(new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000}
                                          onChange={(e) => setDuration(Math.min(e.target.value, (new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000))}
-                                         className="w-24 rounded-lg border border-[#DCE3ED] px-3 py-1.5 text-sm text-[#1F3A5F] font-bold outline-none text-center"
+                                         className="w-full rounded-lg border border-[#DCE3ED] px-3 py-1.5 text-sm text-[#1F3A5F] font-semibold outline-none focus:border-[#1F3A5F]"
                                      />
-                                     <span className="text-xs text-[#5A6C7D]">
-                                         Range: 5 to {(new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000} mins
-                                     </span>
                                  </div>
                              </div>
                          )}
