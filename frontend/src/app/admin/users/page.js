@@ -46,12 +46,13 @@ const fetchUsers = async () => {
     const [newUser, setNewUser] = useState({
     name: "",
     email: "",
-    role: "Student",
+    role: "STUDENT",
     roll: "",
     program: "",
     dept: "",
     location: "",
     subjects: "",
+    designation1:"",
     });
 
 
@@ -83,7 +84,8 @@ const handleAddUser = async () => {
   const data = await res.json();
 
   if (data.success) {
-    setUsers([...users, { id: data.user.id, ...newUser, role: tab }]);
+    setUsers([...users, data.user]);
+
   }
 };
 //  ----------------------------------------------------------------------------
@@ -137,8 +139,9 @@ const handleDelete = async (id) => {
 
             <button
               onClick={() => setTab("STUDENT")}
+              
               className={`px-4 py-1.5 text-sm rounded-md transition ${
-                tab === "Student"
+                tab === "STUDENT"
                   ? "bg-[#1F3A5F] text-white"
                   : "text-[#2A4A75] hover:bg-[#F1F4F9]"
               }`}
@@ -149,7 +152,7 @@ const handleDelete = async (id) => {
             <button
               onClick={() => setTab("FACULTY")}
               className={`px-4 py-1.5 text-sm rounded-md transition ${
-                tab === "Faculty"
+                tab === "FACULTY"
                   ? "bg-[#1F3A5F] text-white"
                   : "text-[#2A4A75] hover:bg-[#F1F4F9]"
               }`}
@@ -219,7 +222,14 @@ const handleDelete = async (id) => {
             }
             className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
         />
-
+        {/* <input
+            placeholder="Email"
+            value={newUser.email}
+            onChange={(e) =>
+            setNewUser({ ...newUser, email: e.target.value })
+            }
+            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+        /> */}
         <select
             value={newUser.program}
             onChange={(e) =>
@@ -270,22 +280,31 @@ const handleDelete = async (id) => {
         />
 
         <input
+            placeholder="Designation"
+            value={newUser.designation1}
+            onChange={(e) =>
+            setNewUser({ ...newUser, designation1: e.target.value })
+            }
+            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+        />
+
+        {/* <input
             placeholder="Location"
             value={newUser.location}
             onChange={(e) =>
             setNewUser({ ...newUser, location: e.target.value })
             }
             className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        />
+        /> */}
 
-        <input
+        {/* <input
             placeholder="Subjects (comma separated)"
             value={newUser.subjects}
             onChange={(e) =>
             setNewUser({ ...newUser, subjects: e.target.value })
             }
             className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm md:col-span-2"
-        />
+        /> */}
 
         </div>
     )}
@@ -315,7 +334,7 @@ const handleDelete = async (id) => {
 
         <th className="text-left p-4 font-medium">User</th>
 
-        {tab === "Student" && (
+        {tab === "STUDENT" && (
           <th className="text-left font-medium">Roll Number</th>
         )}
         
@@ -352,8 +371,8 @@ const handleDelete = async (id) => {
         </td>
 
         {/* Roll */}
-        {tab === "Student" && (
-            <td className="text-[#2A4A75]">{user.roll}</td>
+        {tab === "STUDENT" && (
+            <td className="text-[#2A4A75]">{user.studentProfile?.rollNumber}</td>
         )}
 
         {/* Email */}
@@ -397,7 +416,7 @@ const handleDelete = async (id) => {
             className="px-6 py-4 text-sm text-[#2A4A75]"
             >
 
-            {tab === "Student" && (
+            {tab === "STUDENT" && (
                 <div className="flex gap-10">
                 <div>
                     <span className="font-medium">Program:</span> {user.program || "-"}
@@ -405,7 +424,7 @@ const handleDelete = async (id) => {
                 </div>
             )}
 
-            {tab === "Faculty" && (
+            {tab === "FACULTY" && (
                 <div className="flex flex-col gap-2">
 
                 <div>
