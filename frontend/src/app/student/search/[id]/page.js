@@ -15,8 +15,11 @@ export default function BookAppointmentPage() {
   const [loading, setLoading] = useState(true);
   
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [duration, setDuration] = useState(30);
   const [purpose, setPurpose] = useState("");
   const [note, setNote] = useState("");
+  const [isGroupMeeting, setIsGroupMeeting] = useState(false);
+  const [isRecurringMeeting, setIsRecurringMeeting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -39,6 +42,12 @@ export default function BookAppointmentPage() {
     fetchAvailability();
   }, [fetchAvailability]);
 
+  const handleSlotSelect = (slot) => {
+    setSelectedSlot(slot);
+    const maxDur = (new Date(slot.end) - new Date(slot.start)) / 60000;
+    setDuration(Math.min(30, maxDur));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedSlot || !purpose) {
@@ -47,12 +56,13 @@ export default function BookAppointmentPage() {
     }
     setSubmitting(true);
     try {
+        const fullNote = `${note}${isGroupMeeting ? ' [Group Meeting]' : ''}${isRecurringMeeting ? ' [Recurring Meeting]' : ''}`.trim();
         const payload = {
             facultyId: parseInt(id),
             start: selectedSlot.start,
-            duration: (new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000,
+            duration: parseInt(duration),
             purpose,
-            note
+            note: fullNote || undefined
         };
         await api.post('/appmt', payload);
         setSuccess(true);
@@ -124,7 +134,7 @@ export default function BookAppointmentPage() {
                                   <button
                                       type="button"
                                       key={index}
-                                      onClick={() => setSelectedSlot(slot)}
+                                      onClick={() => handleSlotSelect(slot)}
                                       className={`p-3 border rounded-xl text-left transition ${
                                           isSelected 
                                           ? 'border-[#1F3A5F] bg-[#1F3A5F]/5 ring-2 ring-[#1F3A5F]' 
@@ -153,6 +163,46 @@ export default function BookAppointmentPage() {
                          placeholder="e.g., Doubts regarding assignment, Project Review"
                          className="w-full rounded-lg border border-[#DCE3ED] px-4 py-2.5 text-sm text-[#1F3A5F] outline-none ring-[#A8BCD6] focus:ring-2"
                      />
+                 </div>
+
+                 {selectedSlot && (
+                     <div>
+                         <label className="block text-sm font-bold text-[#1F3A5F] mb-1">Duration (minutes)</label>
+                         <input 
+                             type="number"
+                             required
+                             value={duration}
+                             min={5}
+                             max={(new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000}
+                             onChange={(e) => setDuration(Math.min(e.target.value, (new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000))}
+                             className="w-full rounded-lg border border-[#DCE3ED] px-4 py-2.5 text-sm text-[#1F3A5F] outline-none ring-[#A8BCD6] focus:ring-2"
+                         />
+                         <p className="text-xs text-gray-400 mt-1">Available range: 5 to {(new Date(selectedSlot.end) - new Date(selectedSlot.start)) / 60000} minutes</p>
+                     </div>
+                 )}
+
+                 <div>
+                     <label className="block text-sm font-bold text-[#1F3A5F] mb-2">Meeting Options</label>
+                     <div className="flex flex-col gap-2 p-3 bg-gray-50 border border-[#DCE3ED] rounded-xl text-sm">
+                         <label className="flex items-center gap-2 text-[#4A6FA5] font-medium cursor-pointer">
+                             <input 
+                                 type="checkbox" 
+                                 checked={isGroupMeeting} 
+                                 onChange={(e) => setIsGroupMeeting(e.target.checked)} 
+                                 className="accent-[#1F3A5F]"
+                             />
+                             Group Meeting
+                         </label>
+                         <label className="flex items-center gap-2 text-[#4A6FA5] font-medium cursor-pointer">
+                             <input 
+                                 type="checkbox" 
+                                 checked={isRecurringMeeting} 
+                                 onChange={(e) => setIsRecurringMeeting(e.target.checked)} 
+                                 className="accent-[#1F3A5F]"
+                             />
+                             Recurring Meeting
+                         </label>
+                     </div>
                  </div>
 
                  <div>
