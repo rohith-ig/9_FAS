@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const {check} = require("../middlewares/roleCheck")
 
 const {
   addUser,
@@ -7,7 +8,7 @@ const {
   getUsers
 } = require("../controllers/userController");
 
-router.get("/", getUsers);
+router.get("/",check, getUsers);
 router.post("/add", addUser);
 router.delete("/:id", deleteUser);
 
