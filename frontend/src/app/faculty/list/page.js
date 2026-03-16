@@ -16,7 +16,8 @@ export default function FacultyAppointmentsPage() {
   const [scheduledAppointments, setScheduledAppointments] =
     useState(scheduledRequestsData);
 
-  const [historyAppointments] = useState(historyRequestsData);
+  const [historyAppointments, setHistoryAppointments] =
+    useState(historyRequestsData);
 
   const handleApprove = (appointment) => {
     setPendingAppointments((prev) =>
@@ -27,15 +28,27 @@ export default function FacultyAppointmentsPage() {
   };
 
   const handleReject = (appointment) => {
-    setPendingAppointments((prev) =>
-      prev.filter((appt) => appt.id !== appointment.id)
-    );
+    setPendingAppointments((prev) => {
+      const updated = prev.filter((appt) => appt.id !== appointment.id);
+      return updated;
+    });
+
+    setHistoryAppointments((prev) => {
+      return [...prev, { ...appointment, status: "Rejected" }];
+    });
   };
 
   const handleCancel = (appointment) => {
+    alert(`Appointment with ${appointment.student} has been cancelled.`);
+
     setScheduledAppointments((prev) =>
       prev.filter((appt) => appt.id !== appointment.id)
     );
+
+    setHistoryAppointments((prev) => [
+      ...prev,
+      { ...appointment, status: "Cancelled" },
+    ]);
   };
 
   const handleReschedule = (appointment) => {
@@ -46,13 +59,18 @@ export default function FacultyAppointmentsPage() {
     setScheduledAppointments((prev) =>
       prev.filter((appt) => appt.id !== appointment.id)
     );
+
+    setPendingAppointments((prev) => [
+      ...prev,
+      { ...appointment, status: "Pending (Reschedule)" },
+    ]);
   };
 
   return (
     <main className="min-h-screen bg-[#F7F9FC] px-4">
       <section className="mx-auto w-full max-w-5xl">
 
-        {/* Page Header */}
+        {/* Header */}
 
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-[#1F3A5F]">
@@ -67,28 +85,9 @@ export default function FacultyAppointmentsPage() {
         {/* Tabs */}
 
         <div className="flex border-b border-[#DCE3ED] mb-6">
-
-          <Tab
-            label="Pending"
-            value="pending"
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
-
-          <Tab
-            label="Scheduled"
-            value="scheduled"
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
-
-          <Tab
-            label="History"
-            value="history"
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
-
+          <Tab label="Pending" value="pending" activeTab={activeTab} setActiveTab={setActiveTab}/>
+          <Tab label="Scheduled" value="scheduled" activeTab={activeTab} setActiveTab={setActiveTab}/>
+          <Tab label="History" value="history" activeTab={activeTab} setActiveTab={setActiveTab}/>
         </div>
 
         <section className="space-y-4">
@@ -185,17 +184,22 @@ function AppointmentCard({
           </p>
         </div>
 
-        <span className="text-xs px-2 py-1 rounded-full bg-[#4A6FA5]/10 text-[#2A4A75]">
-          {data.mode}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs px-2 py-1 rounded-full bg-[#4A6FA5]/10 text-[#2A4A75]">
+            {data.mode}
+          </span>
+
+          {data.status && (
+            <span className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">
+              {data.status}
+            </span>
+          )}
+        </div>
 
       </div>
 
-      {/* Pending Buttons */}
-
       {showApproveReject && (
         <div className="mt-4 flex gap-2">
-
           <button
             onClick={onApprove}
             className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-md"
@@ -209,15 +213,11 @@ function AppointmentCard({
           >
             Reject
           </button>
-
         </div>
       )}
 
-      {/* Scheduled Buttons */}
-
       {showReschedule && (
         <div className="mt-4 flex gap-2">
-
           <button
             onClick={onReschedule}
             className="px-3 py-1.5 text-xs bg-[#1F3A5F] text-white rounded-md"
@@ -231,7 +231,6 @@ function AppointmentCard({
           >
             Cancel
           </button>
-
         </div>
       )}
 
