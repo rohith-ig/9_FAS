@@ -62,16 +62,11 @@ const getAppointments = async (req, res) => {
         if (req.user.role === 'STUDENT') {
             appointments = await prisma.appointmentRequest.findMany({
                 where: { studentId: req.user.studentProfile.id },
-                select : {
+                include: {
                     faculty: {
-                        select : {
-                            id: true,
-                            department: true,
-                            designation: true
-                        },
-                        select : {
-                            user : {
-                                select : {
+                        include: {
+                            user: {
+                                select: {
                                     name: true,
                                     email: true
                                 }
@@ -79,7 +74,7 @@ const getAppointments = async (req, res) => {
                         }
                     }
                 },
-                orderBy: { start: 'asc' },
+                orderBy: { start: 'desc' },
             });     
         }
         else if (req.user.role === 'FACULTY') {
