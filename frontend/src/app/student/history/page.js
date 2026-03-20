@@ -29,9 +29,10 @@ export default function StudentHistoryPage() {
                         dept: apt.faculty?.department || "",
                         email: apt.faculty?.user?.email || "",
                         location: apt.location || "TBD",
-                        cancellationNote: apt.cancellationNote || ""
+                        cancellationNote: apt.cancellationNote || "",
+                        startRaw: apt.start
                     };
-                });
+                }).sort((a, b) => new Date(a.startRaw) - new Date(b.startRaw));
                 setAppointments(formattedData);
             } catch (error) {
                 console.error("Failed to fetch appointments:", error);
