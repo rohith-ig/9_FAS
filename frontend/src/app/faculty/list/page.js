@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import api from "../../../axios";
-import { Loader2, CalendarClock, Clock, Eye, Sparkles, Filter, ChevronRight, User } from "lucide-react";
+import { Loader2, CalendarClock, Clock, Eye, Filter } from "lucide-react";
 import Link from "next/link";
 
 export default function FacultyAppointmentList() {
@@ -14,7 +14,7 @@ export default function FacultyAppointmentList() {
     setLoading(true);
     try {
       const response = await api.get('/appmt');
-      // sort by start date ascending, or creation date
+      // sort by start date ascending
       setAppointments(response.data.sort((a, b) => new Date(a.start) - new Date(b.start)));
     } catch (error) {
       console.error("Failed to fetch appointments:", error);
@@ -27,164 +27,121 @@ export default function FacultyAppointmentList() {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  
-
   const pendingAppointments = appointments.filter(a => a.status === 'PENDING');
   const scheduledAppointments = appointments.filter(a => a.status === 'APPROVED');
   const historyAppointments = appointments.filter(a => ['REJECTED', 'CANCELLED'].includes(a.status) || new Date(a.end) < new Date());
 
   if (loading) {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-slate-50 text-slate-500">
-          <Loader2 className="h-10 w-10 animate-spin text-slate-800" />
-          <p className="text-sm font-semibold tracking-wide">Syncing Workspace...</p>
+      <div className="flex min-h-[calc(100vh-64px)] w-full items-center justify-center text-[#5A6C7D] flex-col gap-3 bg-[#F4F7FB]">
+          <Loader2 className="h-8 w-8 animate-spin text-[#1F3A5F]" />
+          <p className="font-semibold">Loading Appointments...</p>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-64px)] w-full flex bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 overflow-hidden font-sans">
-      
-      {/* Premium Ambient Background Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-indigo-400/10 rounded-full blur-[100px] pointer-events-none mix-blend-multiply" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40rem] h-[40rem] bg-sky-400/10 rounded-full blur-[100px] pointer-events-none mix-blend-multiply" />
-
-      {/* Main Content Area */}
-      <div className="relative w-full h-full flex flex-col z-10 p-5 md:p-8 lg:p-10 max-w-[1400px] mx-auto">
-
+    <div className="min-h-[calc(100vh-64px)] bg-[#F4F7FB] py-8 font-sans">
+      <div className="mx-auto w-full max-w-[1200px] px-4 md:px-8">
+        
         {/* Header Block */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 shrink-0 gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/5 border border-slate-900/10 text-slate-700 text-xs font-bold uppercase tracking-wider mb-2">
-               <Sparkles size={12} className="text-indigo-500" />
-               Workspace
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-              Scheduler <span className="text-slate-400 font-light">Overview</span>
+        <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-[#1F3A5F]">
+              Faculty Scheduler
             </h1>
-            <p className="text-slate-500 text-base md:text-lg max-w-xl font-medium">
-              Review requests and effortlessly manage your upcoming appointments in one centralized hub.
+            <p className="text-[#5A6C7D] mt-1 text-sm md:text-base">
+              Review requests and manage your scheduled appointments efficiently.
             </p>
           </div>
-        </div>
+          
+          <div className="hidden sm:block">
+             <button className="inline-flex items-center gap-2 rounded-md border border-[#DCE3ED] bg-white px-4 py-2 text-sm font-medium text-[#1F3A5F] transition hover:bg-[#F4F7FB]">
+                 <Filter size={16} /> Filter Output
+             </button>
+          </div>
+        </header>
 
-        {/* Container */}
-        <div className="flex flex-col flex-1 min-h-0 bg-white/70 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2rem] overflow-hidden relative">
+        {/* List Card Area */}
+        <div className="bg-white rounded-xl border border-[#DCE3ED] shadow-sm flex flex-col md:min-h-[600px] overflow-hidden">
         
-          {/* Top Glass Bar / Tabs */}
-          <div className="border-b border-slate-100/80 bg-white/50 px-4 md:px-8 py-5 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-20">
-            
-            {/* Soft Segmented Control Tabs */}
-            <div className="flex bg-slate-100/60 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto scrollbar-hide border border-slate-200/50 shadow-inner">
-              <TabButton 
-                active={activeTab === "pending"} 
-                onClick={() => setActiveTab("pending")}
-                count={pendingAppointments.length}
-                badgeColor="bg-amber-100 text-amber-700 border-amber-200"
-              >
-                Action Required
-              </TabButton>
-              <TabButton 
-                active={activeTab === "scheduled"} 
-                onClick={() => setActiveTab("scheduled")}
-                count={scheduledAppointments.length}
-                badgeColor="bg-emerald-100 text-emerald-700 border-emerald-200"
-              >
-                Scheduled
-              </TabButton>
-              <TabButton 
-                active={activeTab === "history"} 
-                onClick={() => setActiveTab("history")}
-              >
-                History Log
-              </TabButton>
-            </div>
+          {/* Tabs */}
+          <div className="flex bg-[#F8FAFC] border-b border-[#DCE3ED] overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("pending")}
+              className={`flex-1 px-4 py-3.5 text-sm font-semibold transition border-b-2 whitespace-nowrap flex items-center justify-center gap-2 ${
+                activeTab === "pending"
+                  ? "text-[#1F3A5F] border-[#1F3A5F] bg-white"
+                  : "text-[#5A6C7D] border-transparent hover:text-[#1F3A5F] hover:bg-gray-50/50"
+              }`}
+            >
+              Pending Requests <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-xs select-none">{pendingAppointments.length}</span>
+            </button>
 
-            {/* Mock Filter Toggle */}
-            <div className="hidden sm:flex shrink-0">
-               <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-semibold text-sm hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
-                  <Filter size={16} /> Filters
-               </button>
-            </div>
+            <button
+              onClick={() => setActiveTab("scheduled")}
+              className={`flex-1 px-4 py-3.5 text-sm font-semibold transition border-b-2 whitespace-nowrap flex items-center justify-center gap-2 ${
+                activeTab === "scheduled"
+                  ? "text-[#1F3A5F] border-[#1F3A5F] bg-white"
+                  : "text-[#5A6C7D] border-transparent hover:text-[#1F3A5F] hover:bg-gray-50/50"
+              }`}
+            >
+              Scheduled <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-xs select-none">{scheduledAppointments.length}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("history")}
+              className={`flex-1 px-4 py-3.5 text-sm font-semibold transition border-b-2 whitespace-nowrap ${
+                activeTab === "history"
+                  ? "text-[#1F3A5F] border-[#1F3A5F] bg-white"
+                  : "text-[#5A6C7D] border-transparent hover:text-[#1F3A5F] hover:bg-gray-50/50"
+              }`}
+            >
+              History Log
+            </button>
           </div>
 
           {/* List Scrolling Area */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-transparent">
+          <div className="flex-1 bg-white">
             {activeTab === "pending" && (
               pendingAppointments.length > 0 ? (
-                <div className="flex flex-col gap-4">
+                <ul className="divide-y divide-[#DCE3ED]">
                   {pendingAppointments.map((appt) => (
-                    <AppointmentRow key={appt.id} data={appt} type="pending"  />
+                    <AppointmentRow key={appt.id} data={appt} type="pending" />
                   ))}
-                </div>
+                </ul>
               ) : (
-                <EmptyState icon={<CalendarClock />} title="All Caught Up" desc="No pending appointment requests to review right now." />
+                <EmptyState text="No pending appointment requests to review." />
               )
             )}
 
             {activeTab === "scheduled" && (
               scheduledAppointments.length > 0 ? (
-                <div className="flex flex-col gap-4">
+                <ul className="divide-y divide-[#DCE3ED]">
                   {scheduledAppointments.map((appt) => (
-                    <AppointmentRow key={appt.id} data={appt} type="scheduled"  />
+                    <AppointmentRow key={appt.id} data={appt} type="scheduled" />
                   ))}
-                </div>
+                </ul>
               ) : (
-                <EmptyState icon={<Clock />} title="Clear Schedule" desc="You don't have any upcoming scheduled appointments." />
+                <EmptyState text="No upcoming scheduled appointments currently." />
               )
             )}
 
             {activeTab === "history" && (
               historyAppointments.length > 0 ? (
-                 <div className="flex flex-col gap-4">
+                 <ul className="divide-y divide-[#DCE3ED]">
                   {historyAppointments.map((appt) => (
                     <AppointmentRow key={appt.id} data={appt} type="history" />
                   ))}
-                </div>
+                </ul>
               ) : (
-                <EmptyState icon={<User />} title="No Logs Found" desc="Your past records or cancelled appointments will appear here." />
+                <EmptyState text="No past records or cancelled appointments found." />
               )
             )}
           </div>
         </div>
       </div>
-      
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: rgba(148, 163, 184, 0.3);
-          border-radius: 20px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background-color: rgba(148, 163, 184, 0.5);
-        }
-      `}</style>
     </div>
-  );
-}
-
-function TabButton({ active, onClick, children, count, badgeColor }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex-1 sm:flex-none px-5 py-2.5 text-[15px] font-bold rounded-xl transition-all duration-300 ease-out whitespace-nowrap flex items-center justify-center gap-2 relative ${
-        active
-          ? "text-slate-900 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] scale-[1.02]"
-          : "text-slate-500 hover:text-slate-800 hover:bg-slate-200/50"
-      }`}
-    >
-      {children}
-      {count !== undefined && (
-        <span className={`px-2 py-0.5 text-[11px] rounded-lg border shadow-sm ${badgeColor || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
-          {count}
-        </span>
-      )}
-    </button>
   );
 }
 
@@ -192,79 +149,59 @@ function AppointmentRow({ data, type }) {
   const startDate = new Date(data.start);
   const timeString = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const dateString = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const day = dateString.split(' ')[1].replace(',', '');
-  const month = dateString.split(' ')[0];
   
   const isPast = ['REJECTED', 'CANCELLED'].includes(data.status);
   const duration = (new Date(data.end) - new Date(data.start)) / 60000;
 
   return (
-    <Link href={`/faculty/view/${data.id}`} className="block group">
-      <div className={`bg-white border text-left w-full border-slate-200/60 p-5 md:p-6 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_30px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-1 hover:border-indigo-100 transition-all duration-300 ease-out flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden ${isPast ? 'opacity-70 saturate-[0.85]' : ''}`}>
-        
-        {/* Magic gradient strip on hover */}
-        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-sky-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        <div className="flex items-start gap-5 flex-1 min-w-0 z-10">
-            {/* Calendar Block */}
-            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-3 text-center min-w-[76px] border border-slate-200 shadow-inner shrink-0 flex flex-col justify-center items-center">
-                <span className="block text-[11px] font-black text-indigo-500 uppercase tracking-widest">{month}</span>
-                <span className="block text-2xl font-black text-slate-800 leading-none my-1">{day}</span>
-                <span className="block text-[11px] font-bold text-slate-500 w-full pt-1 border-t border-slate-200/80">{timeString}</span>
-            </div>
-
-            <div className="min-w-0 flex flex-col justify-center gap-1.5 pt-1">
-                <div className="flex items-center gap-3">
-                    <h4 className="font-bold text-slate-900 text-lg truncate flex items-center gap-2">
-                       {data.student.user.name} 
-                    </h4>
-                    <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md shadow-sm">
-                        {data.student.rollNumber}
-                    </span>
-                    {type === "history" && (
-                      <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-sm ml-1 ${
-                        data.status === 'REJECTED' || data.status === 'CANCELLED' 
-                          ? 'bg-rose-50 text-rose-600 border border-rose-200' 
-                          : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                      }`}>
-                        {data.status === 'APPROVED' ? 'COMPLETED' : data.status}
-                      </span>
-                    )}
-                </div>
-
-                <p className="text-sm text-slate-600 font-medium truncate max-w-full">
-                   {data.purpose}
-                </p>
-
-                <div className="flex items-center gap-4 mt-1">
-                   <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
-                      <Clock size={12} className="text-indigo-400" />
-                      {duration} Minutes
-                   </div>
-                </div>
-            </div>
-        </div>
-
-        <div className="flex items-center justify-end shrink-0 z-10 transition-transform duration-300 group-hover:translate-x-1">
-            <div className="flex items-center justify-center p-3 rounded-full bg-slate-50 border border-slate-200 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-100 shadow-sm transition-colors duration-300">
-                <ChevronRight size={20} strokeWidth={2.5} />
-            </div>
-        </div>
+    <li className={`p-5 hover:bg-[#F8FAFC] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isPast ? 'opacity-80' : ''}`}>
+      <div className="flex items-start gap-4">
+          <div className="bg-[#4A6FA5]/10 rounded-lg p-3 text-center min-w-[70px] border border-[#4A6FA5]/20 flex-shrink-0">
+              <span className="block text-xs font-bold text-[#4A6FA5] uppercase">{dateString.split(' ')[0]} {dateString.split(' ')[1].replace(',', '')}</span>
+              <span className="block text-[15px] font-bold text-[#1F3A5F]">{timeString}</span>
+          </div>
+          <div>
+              <h4 className="font-semibold text-[#1F3A5F] text-lg flex items-center gap-2">
+                 {data.student.user.name} 
+                 <span className="text-sm font-normal text-[#5A6C7D]">({data.student.rollNumber})</span>
+              </h4>
+              <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
+                  <Clock size={14} /> Duration: {duration} min
+              </p>
+              <p className="text-sm text-[#5A6C7D] mt-1 space-x-1 truncate max-w-full">
+                 <span className="font-medium text-[#1F3A5F]">Purpose:</span> <span className="truncate max-w-[200px] sm:max-w-[400px] inline-block align-bottom">{data.purpose}</span>
+              </p>
+          </div>
       </div>
-    </Link>
+
+      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+         {type === "history" && (
+            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+              data.status === 'REJECTED' || data.status === 'CANCELLED' 
+                ? 'bg-rose-100 text-rose-700' 
+                : 'bg-emerald-100 text-emerald-700'
+            }`}>
+              {data.status === 'APPROVED' ? 'COMPLETED' : data.status}
+            </span>
+         )}
+         
+         <Link 
+            href={`/faculty/view/${data.id}`}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold border border-[#DCE3ED] text-[#1F3A5F] bg-white rounded-md hover:bg-[#F4F7FB] transition"
+         >
+             <Eye size={16} /> View
+         </Link>
+      </div>
+    </li>
   );
 }
 
-function EmptyState({ icon, title, desc }) {
+function EmptyState({ text }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-slate-500 h-full">
-      <div className="bg-white p-5 rounded-3xl mb-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 text-indigo-400 transform transition hover:scale-105 duration-300">
-         <div className="scale-150">
-           {icon}
-         </div>
-      </div>
-      <h3 className="font-extrabold text-xl text-slate-800 tracking-tight">{title}</h3>
-      <p className="text-sm mt-2 text-slate-500 max-w-sm text-center font-medium leading-relaxed">{desc}</p>
+    <div className="flex flex-col items-center justify-center py-24 text-[#5A6C7D]">
+      <CalendarClock className="h-12 w-12 text-[#DCE3ED] mb-4" />
+      <p className="text-lg font-medium text-[#1F3A5F]">{text}</p>
+      <p className="text-sm mt-1">Check back later for updates</p>
     </div>
   );
 }
