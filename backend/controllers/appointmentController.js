@@ -167,7 +167,7 @@ const updateAppointmentStatus = async (req, res) => {
             if (status === 'REJECTED') {
                 const updateMain = await prisma.appointmentRequest.update({
                     where : {id : Number(id)},
-                    data: {status : status}
+                    data: {status : status, cancellationNote: cancel}
                 });
                 return res.json(updateMain);
             }
@@ -176,7 +176,7 @@ const updateAppointmentStatus = async (req, res) => {
     }
     catch (e) {
         console.log(e);
-        res.status(500).json("Internal Server Error")
+        res.status(500).json("Internal Server Error");
     }
 }
 

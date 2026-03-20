@@ -72,144 +72,145 @@ export default function FacultyAppointmentDetail() {
   const duration = (endDate - startDate) / 60000;
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8">
+    <div className="mx-auto w-full max-w-3xl px-4 py-4 h-[calc(100vh-64px)] overflow-hidden flex flex-col justify-center">
       
-      <Link href="/faculty/list" className="inline-flex items-center gap-2 text-sm font-semibold text-[#4A6FA5] hover:text-[#1F3A5F] transition mb-6">
+      <Link href="/faculty/list" className="inline-flex items-center gap-2 text-sm font-semibold text-[#4A6FA5] hover:text-[#1F3A5F] transition mb-3">
           <ArrowLeft size={16} /> Back to Appointments
       </Link>
 
-      <div className="bg-white border border-[#DCE3ED] rounded-xl shadow-sm overflow-hidden p-6 md:p-8">
+      <div className="bg-white border border-[#DCE3ED] rounded-xl shadow-sm overflow-hidden flex flex-col h-full max-h-[750px]">
         
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 border-b border-[#E8EEF5] pb-6">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 p-5 border-b border-[#E8EEF5]">
             <div>
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 shadow-sm border ${
+                <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 shadow-sm border ${
                     appointment.status === 'PENDING' ? 'bg-amber-100 text-amber-700 border-amber-200' :
                     appointment.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
                     'bg-rose-100 text-rose-700 border-rose-200'
                 }`}>
                     {appointment.status === 'APPROVED' ? 'CONFIRMED' : appointment.status}
                 </span>
-                <h1 className="text-3xl font-bold text-[#1F3A5F] leading-tight">{appointment.purpose}</h1>
-                <p className="text-[#5A6C7D] mt-2 font-medium">Ref ID: #{appointment.id}</p>
+                <h1 className="text-xl font-bold text-[#1F3A5F] leading-tight">{appointment.purpose}</h1>
+                <p className="text-[#5A6C7D] mt-1 text-xs font-medium">Ref ID: #{appointment.id}</p>
             </div>
             
-            <div className="bg-[#F8FAFC] border border-[#DCE3ED] rounded-xl p-5 min-w-[220px] text-center shadow-sm">
-                <p className="text-[#1F3A5F] font-bold text-lg">{dateString}</p>
-                <div className="h-px w-full bg-[#E8EEF5] my-3"></div>
-                <p className="text-[#4A6FA5] font-bold flex items-center justify-center gap-2">
-                   <Clock size={16} /> {timeString}
+            <div className="bg-[#F8FAFC] border border-[#DCE3ED] rounded-lg p-3 min-w-[160px] text-center shadow-sm">
+                <p className="text-[#1F3A5F] font-bold text-sm">{dateString}</p>
+                <div className="h-px w-full bg-[#E8EEF5] my-1.5"></div>
+                <p className="text-[#4A6FA5] font-bold text-xs flex items-center justify-center gap-1.5">
+                   <Clock size={12} /> {timeString}
                 </p>
             </div>
         </div>
 
-        <div className="space-y-6 mb-10">
-            <div>
-                <h3 className="text-xs font-bold text-[#6C8096] uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <User size={16} /> Student Information
-                </h3>
-                <div className="bg-[#FBFCFE] p-5 rounded-xl border border-[#E8EEF5] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <p className="text-xl font-bold text-[#1F3A5F]">{appointment.student.user.name}</p>
-                        <p className="text-[#5A6C7D] font-medium mt-1">{appointment.student.user.email}</p>
-                    </div>
-                    <div className="flex flex-col gap-1 sm:text-right">
-                        <span className="text-sm font-bold text-[#4A6FA5] bg-[#F0F4F8] px-3 py-1 rounded-md inline-block">
-                           Roll: {appointment.student.rollNumber}
-                        </span>
-                        <span className="text-sm font-semibold text-[#5A6C7D]">
-                           Dept: {appointment.student.department}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="flex-1 overflow-y-auto p-5 scrollbar-thin">
+            <div className="space-y-4">
                 <div>
-                    <h3 className="text-xs font-bold text-[#6C8096] uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <CalendarClock size={16} /> Duration Setup
+                    <h3 className="text-[10px] font-bold text-[#6C8096] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <User size={14} /> Student Information
                     </h3>
-                    <div className="bg-[#FBFCFE] p-4 rounded-xl border border-[#E8EEF5] flex items-center gap-3 h-[72px]">
-                        <div className="h-10 w-10 bg-[#E8EEF5] rounded-lg flex flex-shrink-0 items-center justify-center text-[#4A6FA5]">
-                           <Clock size={20} />
-                        </div>
+                    <div className="bg-[#FBFCFE] p-3.5 rounded-lg border border-[#E8EEF5] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                           <p className="text-[#1F3A5F] font-bold">{duration} Minutes</p>
-                           <p className="text-xs text-[#5A6C7D] font-medium">Reserved Time Window</p>
+                            <p className="text-base font-bold text-[#1F3A5F]">{appointment.student.user.name}</p>
+                            <p className="text-[#5A6C7D] text-xs font-medium mt-0.5">{appointment.student.user.email}</p>
+                        </div>
+                        <div className="flex flex-col gap-1 sm:text-right">
+                            <span className="text-xs font-bold text-[#4A6FA5] bg-[#F0F4F8] px-2 py-0.5 rounded inline-block">
+                               Roll: {appointment.student.rollNumber}
+                            </span>
+                            <span className="text-[10px] font-semibold text-[#5A6C7D]">
+                               Dept: {appointment.student.department}
+                            </span>
                         </div>
                     </div>
                 </div>
-                {appointment.note && (
-                <div>
-                    <h3 className="text-xs font-bold text-[#6C8096] uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <MessageSquare size={16} /> Attached Note
-                    </h3>
-                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-start gap-3 h-[72px] overflow-y-auto">
-                        <p className="text-amber-900 font-medium text-sm leading-snug">
-                           "{appointment.note}"
-                        </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <h3 className="text-[10px] font-bold text-[#6C8096] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <CalendarClock size={14} /> Duration Setup
+                        </h3>
+                        <div className="bg-[#FBFCFE] p-3 rounded-lg border border-[#E8EEF5] flex items-center gap-3 h-[58px]">
+                            <div className="h-8 w-8 bg-[#E8EEF5] rounded gap-2 flex flex-shrink-0 items-center justify-center text-[#4A6FA5]">
+                               <Clock size={16} />
+                            </div>
+                            <div>
+                               <p className="text-[#1F3A5F] text-sm font-bold">{duration} Minutes</p>
+                               <p className="text-[10px] text-[#5A6C7D] font-medium">Reserved Time Window</p>
+                            </div>
+                        </div>
                     </div>
+                    {appointment.note && (
+                    <div>
+                        <h3 className="text-[10px] font-bold text-[#6C8096] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                            <MessageSquare size={14} /> Attached Note
+                        </h3>
+                        <div className="bg-amber-50 p-3 rounded-lg border border-amber-100 flex items-start h-[58px] overflow-y-auto">
+                            <p className="text-amber-900 font-medium text-xs leading-snug">
+                               "{appointment.note}"
+                            </p>
+                        </div>
+                    </div>
+                    )}
                 </div>
-                )}
             </div>
         </div>
 
-        <div className="bg-[#F4F7FB] p-5 md:p-6 rounded-2xl border border-[#DCE3ED]">
+        <div className="bg-[#F4F7FB] p-4 border-t border-[#E8EEF5] flex-shrink-0">
              {appointment.status === 'PENDING' && (
-                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
                       <button 
                          onClick={() => handleStatusUpdate('REJECTED')}
                          disabled={updating}
-                         className="w-full sm:w-1/3 flex items-center justify-center gap-2 bg-white border-2 border-rose-500 text-rose-600 hover:bg-rose-50 hover:border-rose-600 py-3.5 rounded-xl font-bold transition disabled:opacity-50"
+                         className="w-full sm:w-1/3 flex items-center justify-center gap-1.5 bg-white border border-rose-500 text-rose-600 hover:bg-rose-50 py-2.5 rounded-lg text-sm font-bold transition disabled:opacity-50"
                       >
-                         <X size={20} /> Decline
+                         <X size={16} /> Decline
                       </button>
                       <button 
                         onClick={() => handleStatusUpdate('APPROVED')}
                         disabled={updating}
-                        className="w-full sm:w-2/3 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-bold transition disabled:opacity-50 shadow-sm"
+                        className="w-full sm:w-2/3 flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-lg text-sm font-bold transition disabled:opacity-50 shadow-sm"
                       >
-                         <Check size={20} /> Approve Request
+                         <Check size={16} /> Approve Request
                       </button>
                   </div>
              )}
 
              {appointment.status === 'APPROVED' && (
-                  <div className="flex flex-col gap-5">
-                       <div className="flex flex-col gap-2">
-                           <label className="text-sm font-bold text-[#1F3A5F] flex items-center gap-2">
-                               Cancellation Note <span className="text-xs text-[#5A6C7D] font-normal">(Required for cancellations)</span>
+                  <div className="flex flex-col gap-3">
+                       <div className="flex flex-col gap-1.5">
+                           <label className="text-xs font-bold text-[#1F3A5F] flex items-center gap-1.5">
+                               Cancellation Note <span className="text-[10px] text-[#5A6C7D] font-normal">(Optional)</span>
                            </label>
                            <textarea 
-                               placeholder="Please provide a brief reason for cancelling this appointment..."
+                               placeholder="Reason for cancelling..."
                                value={cancelNote}
                                onChange={(e) => setCancelNote(e.target.value)}
-                               className="w-full text-sm rounded-xl border border-[#DCE3ED] p-4 text-[#1F3A5F] outline-none focus:border-[#4A6FA5] focus:ring-1 focus:ring-[#4A6FA5] shadow-sm transition resize-none min-h-[90px]"
+                               className="w-full text-xs rounded-lg border border-[#DCE3ED] p-2.5 text-[#1F3A5F] outline-none focus:border-[#4A6FA5] focus:ring-1 focus:ring-[#4A6FA5] shadow-sm transition resize-none h-[50px]"
                            />
                        </div>
-                       <div className="flex flex-col sm:flex-row items-center gap-4">
+                       <div className="flex flex-col sm:flex-row items-center gap-3">
                            <button 
                              onClick={() => handleStatusUpdate('CANCELLED')}
-                             disabled={updating || cancelNote.trim() === ''}
-                             className="w-full sm:flex-1 flex items-center justify-center gap-2 bg-white border border-[#DCE3ED] text-rose-600 hover:bg-rose-50 hover:border-rose-200 py-3.5 rounded-xl font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                             disabled={updating}
+                             className="w-full sm:flex-1 flex items-center justify-center gap-1.5 bg-white border border-[#DCE3ED] text-rose-600 hover:bg-rose-50 hover:border-rose-200 py-2.5 rounded-lg text-sm font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                             <CalendarOff size={18} /> Confirm Cancellation
+                             <CalendarOff size={16} /> Cancel
                           </button>
                           <button 
                             onClick={handleReschedule}
                             disabled={updating}
-                            className="w-full sm:flex-1 flex items-center justify-center gap-2 bg-[#1F3A5F] hover:bg-[#2A4A75] text-white py-3.5 rounded-xl font-bold transition shadow-sm disabled:opacity-50"
+                            className="w-full sm:flex-1 flex items-center justify-center gap-1.5 bg-[#1F3A5F] hover:bg-[#2A4A75] text-white py-2.5 rounded-lg text-sm font-bold transition shadow-sm disabled:opacity-50"
                           >
-                             <Clock size={18} /> Propose Reschedule
+                             <Clock size={16} /> Reschedule
                           </button>
                       </div>
                   </div>
              )}
 
              {(appointment.status === 'REJECTED' || appointment.status === 'CANCELLED') && (
-                  <div className="text-center py-4 bg-white rounded-xl border border-[#DCE3ED] shadow-sm">
-                      <p className="text-[#5A6C7D] font-bold text-sm">
-                          This appointment request has been closed. <br className="sm:hidden" />
-                          <span className="font-medium">No further action is required.</span>
+                  <div className="text-center py-2 bg-white rounded-lg border border-[#DCE3ED] shadow-sm">
+                      <p className="text-[#5A6C7D] font-bold text-xs">
+                          Closed. No further action is required.
                       </p>
                   </div>
              )}

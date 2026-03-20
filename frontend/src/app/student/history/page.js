@@ -28,7 +28,8 @@ export default function StudentHistoryPage() {
                         type: apt.purpose,
                         dept: apt.faculty?.department || "",
                         email: apt.faculty?.user?.email || "",
-                        location: apt.location || "TBD"
+                        location: apt.location || "TBD",
+                        cancellationNote: apt.cancellationNote || ""
                     };
                 });
                 setAppointments(formattedData);
@@ -243,7 +244,7 @@ export default function StudentHistoryPage() {
                                     </span>
 
                                     <Link
-                                        href={`/student/history/manage?name=${encodeURIComponent(apt.faculty)}&date=${encodeURIComponent(apt.date)}&time=${apt.time}&dept=${apt.dept}&email=${apt.email}&location=${apt.location}&status=${apt.status}`}
+                                        href={`/student/history/manage?name=${encodeURIComponent(apt.faculty)}&date=${encodeURIComponent(apt.date)}&time=${apt.time}&dept=${apt.dept}&email=${apt.email}&location=${apt.location}&status=${apt.status}&cancelNote=${encodeURIComponent(apt.cancellationNote || '')}`}
                                         className="text-[#5A6C7D] hover:text-[#4A6FA5] p-2 rounded-md hover:bg-[#F4F7FB] transition"
                                     >
                                         <ChevronRight size={20} />

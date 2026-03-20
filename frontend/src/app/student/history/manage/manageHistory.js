@@ -17,6 +17,8 @@ export default function ManageRequests() {
 
   const location = params.get("location") || "notFound";
 
+  const cancelNote = params.get("cancelNote");
+
   const [showCancelModal, setShowCancelModal] = useState(false);
 
 
@@ -36,50 +38,59 @@ export default function ManageRequests() {
 
         {/* Appointment Details */}
         <div className="bg-white border border-[#E0E0E0] rounded-xl p-8 mb-8">
-          <h3 className="text-xl font-semibold text-[#1F3A5F] mb-6">Appointment Information</h3>
+          <div className="flex justify-between items-start mb-6">
+            <h3 className="text-xl font-semibold text-[#1F3A5F]">Appointment Information</h3>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+               status === "Confirmed" ? "bg-emerald-100 text-emerald-700" :
+               status === "Pending" ? "bg-amber-100 text-amber-700" :
+               "bg-rose-100 text-rose-700"
+            }`}>
+               {status}
+            </span>
+          </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-base text-gray-700">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-base text-gray-700 mb-6">
             <div className="flex items-center gap-3">
-              <User size={18} />
+              <User size={18} className="text-[#4A6FA5]" />
               <span>Faculty: {name}</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <Mail size={18} />
+              <Mail size={18} className="text-[#4A6FA5]" />
               <span>Email: {email}</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <BookOpen size={18} />
-              <span>Department:{dept}</span>
+              <BookOpen size={18} className="text-[#4A6FA5]" />
+              <span>Department: {dept}</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <Calendar size={18} />
-              <span>Date:{date}</span>
+              <Calendar size={18} className="text-[#4A6FA5]" />
+              <span>Date: {date}</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <Clock size={18} />
+              <Clock size={18} className="text-[#4A6FA5]" />
               <span>Time: {time}</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <MapPin size={18} />
+              <MapPin size={18} className="text-[#4A6FA5]" />
               <span>Location: {location}</span>
             </div>
           </div>
-
-          <div className="mt-6 text-base text-gray-700">
-            <p className="font-medium text-[#1F3A5F] mb-1">Purpose of Appointment</p>
-            <p className="text-gray-600">
-              Discussion regarding final year project supervision and timeline planning.
-            </p>
-          </div>
+          
+          {(status === "Cancelled" || status === "Rejected") && cancelNote && (
+            <div className="mt-6 p-4 rounded-lg bg-rose-50 border border-rose-100">
+               <h4 className="text-sm font-bold text-rose-800 mb-1">Cancellation Note</h4>
+               <p className="text-sm text-rose-700">{cancelNote}</p>
+            </div>
+          )}
         </div>
 
         {/* Cancel Button */}
-        {status !== "Completed" && (
+        {(status !== "Completed" && status !== "Cancelled" && status !== "Rejected") && (
           <div className="mb-10">
             <button
               className="bg-red-600 hover:bg-red-700 text-white text-base px-6 py-3 rounded-lg transition"
