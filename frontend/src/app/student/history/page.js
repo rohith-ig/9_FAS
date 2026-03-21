@@ -242,11 +242,11 @@ export default function StudentHistoryPage() {
                                                     <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold">Capacity: {apt.students.length}/{apt.capacity}</span>
                                                 </div>
                                                 <div className="text-xs text-[#5A6C7D] space-y-1 mb-3">
-                                                    {apt.students.map((s) => (
-                                                        <div key={s.student.id} className="flex items-center gap-1.5">
+                                                    {apt.students.map((s, index) => (
+                                                        <div key={s?.student?.id || index} className="flex items-center gap-1.5">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-[#DCE3ED]" />
-                                                            <span className="font-semibold text-[#1F3A5F]">{s.student.user?.name}</span>
-                                                            ({s.student.user?.email})
+                                                            <span className="font-semibold text-[#1F3A5F]">{s?.student?.user?.name || "Unknown Student"}</span>
+                                                            ({s?.student?.user?.email || "No Email"})
                                                         </div>
                                                     ))}
                                                 </div>
