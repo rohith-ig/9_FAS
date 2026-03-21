@@ -162,11 +162,21 @@ function AppointmentRow({ data, type }) {
           </div>
           <div>
               <h4 className="font-semibold text-[#1F3A5F] text-lg flex items-center gap-2">
-                 {data.student.user.name} 
-                 <span className="text-sm font-normal text-[#5A6C7D]">({data.student.rollNumber})</span>
+                 {data.students?.[0]?.student?.user?.name || "Unknown Student"} 
+                 {data.students?.length > 1 && (
+                    <span className="text-xs font-semibold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">+ {data.students.length - 1} more</span>
+                 )}
+                 <span className="text-sm font-normal text-[#5A6C7D]">
+                    ({data.students?.[0]?.student?.rollNumber || "N/A"})
+                 </span>
               </h4>
               <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
                   <Clock size={14} /> Duration: {duration} min
+                  {data.capacity > 1 && (
+                     <span className="ml-2 font-semibold text-[#4A6FA5] flex items-center gap-1">
+                        <User size={12} /> {data.students?.length || 1}/{data.capacity}
+                     </span>
+                  )}
               </p>
               <p className="text-sm text-[#5A6C7D] mt-1 space-x-1 truncate max-w-full">
                  <span className="font-medium text-[#1F3A5F]">Purpose:</span> <span className="truncate max-w-[200px] sm:max-w-[400px] inline-block align-bottom">{data.purpose}</span>

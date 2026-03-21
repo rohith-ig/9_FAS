@@ -105,22 +105,31 @@ export default function FacultyAppointmentDetail() {
         <div className="flex-1 overflow-y-auto p-5 scrollbar-thin">
             <div className="space-y-5">
                 <div>
-                    <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <User size={14} /> Student Profile
-                    </h3>
-                    <div className="bg-[#F8FAFC] p-4 rounded-lg border border-[#DCE3ED] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                            <p className="text-base font-bold text-[#1F3A5F]">{appointment.student.user.name}</p>
-                            <p className="text-[#5A6C7D] text-sm mt-0.5">{appointment.student.user.email}</p>
-                        </div>
-                        <div className="flex flex-col sm:items-end gap-1 text-sm">
-                            <span className="font-medium text-[#4A6FA5]">
-                               Roll: {appointment.student.rollNumber}
-                            </span>
-                            <span className="text-[#5A6C7D]">
-                               {appointment.student.department}
-                            </span>
-                        </div>
+                    <div className="flex items-center justify-between mb-2">
+                       <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider flex items-center gap-1.5">
+                           <User size={14} /> Participants ({appointment.students?.length}/{appointment.capacity})
+                       </h3>
+                    </div>
+                    <div className="space-y-3">
+                        {appointment.students?.map((participant) => {
+                           const studentInfo = participant.student;
+                           return (
+                               <div key={studentInfo.id} className="bg-[#F8FAFC] p-4 rounded-lg border border-[#DCE3ED] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                   <div>
+                                       <p className="text-base font-bold text-[#1F3A5F]">{studentInfo.user?.name}</p>
+                                       <p className="text-[#5A6C7D] text-sm mt-0.5">{studentInfo.user?.email}</p>
+                                   </div>
+                                   <div className="flex flex-col sm:items-end gap-1 text-sm">
+                                       <span className="font-medium text-[#4A6FA5]">
+                                          Roll: {studentInfo.rollNumber}
+                                       </span>
+                                       <span className="text-[#5A6C7D]">
+                                          {studentInfo.department}
+                                       </span>
+                                   </div>
+                               </div>
+                           );
+                        })}
                     </div>
                 </div>
 

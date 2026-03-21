@@ -5,7 +5,8 @@ const postAppointmentRequest = async (req, res) => {
         if (req.user.role !== 'STUDENT') {
             return res.status(403).json({ error: 'Only students can create appointment requests' });
         }
-        const { facultyId, start, duration, purpose, note } = req.body;
+        const { facultyId, start, duration, purpose, note, capacity = 1 } = req.body;
+
         if (!facultyId || !start || !duration || !purpose) {
             return res.status(400).json({ error: 'Missing required fields' });
         }   
@@ -45,7 +46,14 @@ const postAppointmentRequest = async (req, res) => {
                 start: new Date(start),
                 end : new Date(new Date(start).getTime() + duration * 60000),
                 purpose: purpose,
-                note: note
+                note: note,
+                capacity: capacity
+            }
+        });
+        const addUserGroup = await prisma.appointmentUsers.create({
+            data: {
+                appointmentId: create.id,
+                userId: req.user.studentProfile.id
             }
         });
         res.status(201).json(create);
@@ -62,13 +70,27 @@ const getAppointments = async (req, res) => {
         if (req.user.role === 'STUDENT') {
             appointments = await prisma.appointmentRequest.findMany({
                 where: { studentId: req.user.studentProfile.id },
-                include: {
-                    faculty: {
-                        include: {
-                            user: {
-                                select: {
-                                    name: true,
-                                    email: true
+                include : {
+                    faculty : {
+                        include : {
+                            user : {
+                                select : {
+                                    name : true,
+                                    email : true,
+                                }
+                            }
+                        }
+                    },
+                    students : {
+                        include : {
+                            student : {
+                                include : {
+                                    user : {
+                                        select : {
+                                            name : true,
+                                            email : true
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -81,21 +103,20 @@ const getAppointments = async (req, res) => {
             appointments = await prisma.appointmentRequest.findMany({
                 where: { facultyId: req.user.facultyProfile.id },
                 include: {
-                    student: {
-                        select: {
-                            id: true,
-                            department: true,
-                            designation: true,
-                            designation : true,
-                            rollNumber : true,
-                            user : {
-                                select : { 
-                                    name : true,
-                                    email : true
+                    students : {
+                        include : {
+                            student : {
+                                include : {
+                                    user : {
+                                        select : {
+                                            name : true,
+                                            email : true
+                                        }
                                     }
                                 }
+                            }
                         }
-                },
+                    }
             },
                 orderBy: { start: 'asc' },
             });     

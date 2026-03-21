@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url       = env("DATABASE_URL")
 }
 
 model User {
@@ -27,6 +27,7 @@ model StudentProfile {
   department  String
   user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointmentRequests AppointmentRequest[] 
+  appointments AppointmentUsers[]
 }
 
 model FacultyProfile {
@@ -51,8 +52,19 @@ model AppointmentRequest {
   status      Status   @default(PENDING)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  capacity    Int
   student     StudentProfile     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   faculty     FacultyProfile     @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  students   AppointmentUsers[]
+}
+
+model AppointmentUsers {
+  id            Int      @id @default(autoincrement())
+  appointmentId Int
+  userId        Int
+  appointment    AppointmentRequest @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  student        StudentProfile               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([appointmentId, userId])
 }
 
 model FacultyAvailability {
