@@ -30,7 +30,9 @@ export default function StudentHistoryPage() {
                         email: apt.faculty?.user?.email || "",
                         location: apt.location || "TBD",
                         cancellationNote: apt.cancellationNote || "",
-                        startRaw: apt.start
+                        startRaw: apt.start,
+                        capacity: apt.capacity || 1,
+                        students: apt.students || []
                     };
                 }).sort((a, b) => new Date(a.startRaw) - new Date(b.startRaw));
                 setAppointments(formattedData);
@@ -230,6 +232,40 @@ export default function StudentHistoryPage() {
                                             <div className="mt-2.5 bg-rose-50 border border-rose-100 rounded-md p-2.5 max-w-sm">
                                                 <p className="text-xs font-bold text-rose-800 mb-0.5">Cancellation Note:</p>
                                                 <p className="text-xs text-rose-700 leading-snug">{apt.cancellationNote}</p>
+                                            </div>
+                                        )}
+
+                                        {apt.capacity > 1 && (
+                                            <div className="mt-3 bg-[#F4F7FB] border border-[#DCE3ED] rounded-lg p-3 max-w-md">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <p className="text-xs font-bold text-[#1F3A5F] uppercase flex items-center gap-1.5"><User size={12} /> Group Meeting</p>
+                                                    <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold">Capacity: {apt.students.length}/{apt.capacity}</span>
+                                                </div>
+                                                <div className="text-xs text-[#5A6C7D] space-y-1 mb-3">
+                                                    {apt.students.map((s) => (
+                                                        <div key={s.student.id} className="flex items-center gap-1.5">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-[#DCE3ED]" />
+                                                            <span className="font-semibold text-[#1F3A5F]">{s.student.user?.name}</span>
+                                                            ({s.student.user?.email})
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                
+                                                {apt.students.length < apt.capacity && apt.status !== "Completed" && apt.status !== "Cancelled" && apt.status !== "Rejected" && (
+                                                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[#DCE3ED]">
+                                                        <input 
+                                                            type="email" 
+                                                            placeholder="Invite student by email..." 
+                                                            className="flex-1 text-xs px-2 py-1.5 rounded border border-[#DCE3ED] outline-none focus:border-[#4A6FA5]"
+                                                        />
+                                                        <button 
+                                                            onClick={() => alert("Dummy API Triggered: Invitiation sent to email!")}
+                                                            className="bg-[#4A6FA5] hover:bg-[#3f5e8a] text-white text-xs px-3 py-1.5 rounded font-medium transition"
+                                                        >
+                                                            Invite
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 

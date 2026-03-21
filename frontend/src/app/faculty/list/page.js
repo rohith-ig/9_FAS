@@ -160,7 +160,7 @@ function AppointmentRow({ data, type }) {
               <span className="block text-xs font-bold text-[#4A6FA5] uppercase">{dateString.split(' ')[0]} {dateString.split(' ')[1].replace(',', '')}</span>
               <span className="block text-[15px] font-bold text-[#1F3A5F]">{timeString}</span>
           </div>
-          <div>
+           <div>
               <h4 className="font-semibold text-[#1F3A5F] text-lg flex items-center gap-2">
                  {data.students?.[0]?.student?.user?.name || "Unknown Student"} 
                  {data.students?.length > 1 && (
@@ -169,6 +169,11 @@ function AppointmentRow({ data, type }) {
                  <span className="text-sm font-normal text-[#5A6C7D]">
                     ({data.students?.[0]?.student?.rollNumber || "N/A"})
                  </span>
+                 {data.capacity > 1 && (
+                     <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-100 rounded">
+                         Group
+                     </span>
+                 )}
               </h4>
               <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
                   <Clock size={14} /> Duration: {duration} min

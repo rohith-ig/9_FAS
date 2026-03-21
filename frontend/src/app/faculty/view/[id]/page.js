@@ -148,6 +148,22 @@ export default function FacultyAppointmentDetail() {
                             </div>
                         </div>
                     </div>
+                    {appointment.capacity > 1 && (
+                        <div>
+                            <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                <User size={14} /> Group Meeting Status
+                            </h3>
+                            <div className="bg-rose-50 p-4 rounded-lg border border-rose-100 flex items-center gap-3 h-[72px]">
+                                <div className="h-8 w-8 bg-white border border-rose-200 rounded-full flex flex-shrink-0 items-center justify-center text-rose-600">
+                                   <User size={16} />
+                                </div>
+                                <div>
+                                   <p className="text-rose-900 text-base font-bold">Group (Capacity: {appointment.capacity})</p>
+                                   <p className="text-xs text-rose-700 font-semibold">isGroup: True</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {appointment.note && (
                     <div>
                         <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider mb-2 flex items-center gap-1.5">
