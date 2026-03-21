@@ -235,40 +235,6 @@ export default function StudentHistoryPage() {
                                             </div>
                                         )}
 
-                                        {apt.capacity > 1 && (
-                                            <div className="mt-3 bg-[#F4F7FB] border border-[#DCE3ED] rounded-lg p-3 max-w-md">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <p className="text-xs font-bold text-[#1F3A5F] uppercase flex items-center gap-1.5"><User size={12} /> Group Meeting</p>
-                                                    <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold">Capacity: {apt.students.length}/{apt.capacity}</span>
-                                                </div>
-                                                <div className="text-xs text-[#5A6C7D] space-y-1 mb-3">
-                                                    {apt.students.map((s, index) => (
-                                                        <div key={s?.student?.id || index} className="flex items-center gap-1.5">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-[#DCE3ED]" />
-                                                            <span className="font-semibold text-[#1F3A5F]">{s?.student?.user?.name || "Unknown Student"}</span>
-                                                            ({s?.student?.user?.email || "No Email"})
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                
-                                                {apt.students.length < apt.capacity && apt.status !== "Completed" && apt.status !== "Cancelled" && apt.status !== "Rejected" && (
-                                                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[#DCE3ED]">
-                                                        <input 
-                                                            type="email" 
-                                                            placeholder="Invite student by email..." 
-                                                            className="flex-1 text-xs px-2 py-1.5 rounded border border-[#DCE3ED] outline-none focus:border-[#4A6FA5]"
-                                                        />
-                                                        <button 
-                                                            onClick={() => alert("Dummy API Triggered: Invitiation sent to email!")}
-                                                            className="bg-[#4A6FA5] hover:bg-[#3f5e8a] text-white text-xs px-3 py-1.5 rounded font-medium transition"
-                                                        >
-                                                            Invite
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
                                     </div>
 
                                 </div>
@@ -288,7 +254,7 @@ export default function StudentHistoryPage() {
                                     </span>
 
                                     <Link
-                                        href={`/student/history/manage?name=${encodeURIComponent(apt.faculty)}&date=${encodeURIComponent(apt.date)}&time=${apt.time}&dept=${apt.dept}&email=${apt.email}&location=${apt.location}&status=${apt.status}&cancelNote=${encodeURIComponent(apt.cancellationNote || '')}`}
+                                        href={`/student/history/manage?id=${apt.id}&name=${encodeURIComponent(apt.faculty)}&date=${encodeURIComponent(apt.date)}&time=${apt.time}&dept=${apt.dept}&email=${apt.email}&location=${apt.location}&status=${apt.status}&cancelNote=${encodeURIComponent(apt.cancellationNote || '')}`}
                                         className="text-[#5A6C7D] hover:text-[#4A6FA5] p-2 rounded-md hover:bg-[#F4F7FB] transition"
                                     >
                                         <ChevronRight size={20} />

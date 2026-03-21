@@ -1,8 +1,9 @@
 "use client";
 
-import { Calendar, User, Clock, Mail, BookOpen, MapPin } from "lucide-react";
-import { useState } from "react";
+import { Calendar, User, Clock, Mail, BookOpen, MapPin, Users } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import api from "../../../../axios";
 
 export default function ManageRequests() {
 
@@ -18,9 +19,29 @@ export default function ManageRequests() {
   const location = params.get("location") || "notFound";
 
   const cancelNote = params.get("cancelNote");
+  const aptId = params.get("id");
 
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [capacity, setCapacity] = useState(1);
+  const [students, setStudents] = useState([]);
 
+  useEffect(() => {
+    if (aptId) {
+      const fetchApt = async () => {
+        try {
+           const response = await api.get('/appmt');
+           const found = response.data.find(a => String(a.id) === String(aptId));
+           if (found) {
+               setCapacity(found.capacity || 1);
+               setStudents(found.students || []);
+           }
+        } catch (error) {
+           console.error("Failed to fetch group details:", error);
+        }
+      };
+      fetchApt();
+    }
+  }, [aptId]);
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] font-inter relative overflow-hidden">
@@ -85,6 +106,45 @@ export default function ManageRequests() {
             <div className="mt-6 p-4 rounded-lg bg-rose-50 border border-rose-100">
                <h4 className="text-sm font-bold text-rose-800 mb-1">Cancellation Note</h4>
                <p className="text-sm text-rose-700">{cancelNote}</p>
+            </div>
+          )}
+
+          {capacity > 1 && (
+            <div className="mt-6 p-5 rounded-lg bg-[#F8FAFC] border border-[#DCE3ED]">
+               <div className="flex items-center justify-between mb-4">
+                  <h4 className="flex items-center gap-2 text-base font-bold text-[#1F3A5F]"><Users size={16} className="text-[#4A6FA5]" /> Group Meeting Participants</h4>
+                  <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded font-bold">Capacity: {students.length}/{capacity}</span>
+               </div>
+               
+               <div className="space-y-2 mb-4">
+                  {students.map((s, idx) => (
+                      <div key={s?.student?.id || idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-white rounded-md border border-[#E8EEF5]">
+                          <div>
+                              <p className="font-semibold text-sm text-[#1F3A5F]">{s?.student?.user?.name || "Unknown Student"}</p>
+                              <p className="text-xs text-[#5A6C7D]">{s?.student?.user?.email || "No Email"}</p>
+                          </div>
+                      </div>
+                  ))}
+               </div>
+
+               {students.length < capacity && status !== "Completed" && status !== "Cancelled" && status !== "Rejected" && (
+                   <div className="pt-4 border-t border-[#E8EEF5]">
+                       <p className="text-sm font-semibold text-[#1F3A5F] mb-2">Invite Additional Members</p>
+                       <div className="flex items-center gap-3">
+                           <input 
+                               type="email" 
+                               placeholder="Student email address..." 
+                               className="flex-1 text-sm px-3 py-2 rounded-md border border-[#DCE3ED] outline-none focus:border-[#4A6FA5]"
+                           />
+                           <button 
+                               onClick={() => alert("Dummy API Triggered: Invitiation sent to email!")}
+                               className="bg-[#4A6FA5] hover:bg-[#3f5e8a] text-white text-sm px-4 py-2 rounded-md font-medium transition whitespace-nowrap"
+                           >
+                               Send Invite
+                           </button>
+                       </div>
+                   </div>
+               )}
             </div>
           )}
         </div>
