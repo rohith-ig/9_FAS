@@ -42,6 +42,12 @@ const callback = async (req, res) => {
         if (!find) {
             return res.redirect('http://localhost:3000'); //handle this later to show user doesnt exist and ask them to contact admin
         }
+        if (find.profilePic.length === 0) {
+            await prisma.user.update({
+                where: { email: userEmail },
+                data: { profilePic: payload.picture },
+            });
+        }
         const token = jwt.sign({ userId: find.id, role: find.role }, process.env.JWT_SECRET, { expiresIn: '30m' });
         console.log("User authenticated successfully:", userEmail, token);
         res.redirect(`http://localhost:3000/login?token=${token}`);

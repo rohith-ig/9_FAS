@@ -61,7 +61,11 @@ export default function FacultyProfilePage() {
                     <div className="relative -mt-12 mb-3">
                         <div className="h-24 w-24 rounded-full bg-white p-1 border border-[#DCE3ED] shadow-sm">
                             <div className="h-full w-full rounded-full bg-[#E8EEF5] flex items-center justify-center text-[#4A6FA5]">
-                                <UserSquare2 size={40} />
+                                <img
+                                src={user.profilePic || "/default-profile.png"}
+                                alt="user"
+                                className="w-10 h-10 rounded-lg object-cover"
+                                />
                             </div>
                         </div>
                     </div>

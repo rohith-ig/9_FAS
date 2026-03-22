@@ -77,7 +77,7 @@ export default function FacultyDashboard() {
             console.log('Fetched appointments:', response.data);
             console.log('Fetched user data:', userData.data);
             setFacultyAppointments(response.data);
-            setUserData({ name : userData.data.user.name, data : userData.data?.user.facultyProfile.designation });
+            setUserData({ name : userData.data.user.name, data : userData.data?.user.facultyProfile.designation, profilePic : userData.data?.user.profilePic });
         } catch (error) {
             console.error('Error fetching faculty appointments:', error);
         } finally {

@@ -56,7 +56,7 @@ export default function StudentDashboard() {
                 api.get('/appmt')
             ]);
             setUser(userRes.data.user);
-            setUserData({ name : userRes.data.user.name, data : userRes.data?.user.studentProfile.rollNumber });
+            setUserData({ name : userRes.data.user.name, data : userRes.data?.user.studentProfile.rollNumber, profilePic : userRes.data?.user.profilePic });
             // Filter to get upcoming (APPROVED) and pending appointments if desired, 
             // but let's just show top 3 upcoming APPROVED ones sorted by date
             const upcoming = appmtRes.data

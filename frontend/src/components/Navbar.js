@@ -220,7 +220,11 @@ export default function Navbar() {
                   className="w-8 h-8 rounded-full bg-[#E8EEF5] border border-[#C8D3E0] flex items-center justify-center text-[#1F3A5F] shadow-sm cursor-pointer hover:shadow hover:bg-[#DCE3ED] transition-all"
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                 >
-                  <User size={16} />
+                  <img
+                    src={userData?.profilePic || "/default-profile.png"}
+                    alt="user"
+                    className={`w-6 h-6 rounded-full object-cover `}
+                  />
                 </div>
 
                 {profileMenuOpen && (
