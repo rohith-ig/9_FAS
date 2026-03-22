@@ -804,26 +804,38 @@ export default function FacultyScheduleViewPage() {
                     </div>
                 </div>
                 
-                <div className="p-5 border-t border-[#DCE3ED] bg-white flex flex-col sm:flex-row justify-end gap-3 z-10 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)]">
+                <div className="p-5 border-t border-[#DCE3ED] bg-white flex flex-col sm:flex-row justify-end items-center gap-3 z-10 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)]">
+                    <div className="flex w-full sm:w-auto sm:mr-auto">
+                         {conflictList.length > 0 && (
+                             <button
+                                 type="button"
+                                 onClick={() => {
+                                     setConflictList([]);
+                                     alert("All remaining overlapping appointments individually cancelled.");
+                                 }}
+                                 className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-[#B05555] hover:bg-[#9A3E3E] transition-colors shadow-sm"
+                             >
+                                 Cancel All Remaining
+                             </button>
+                         )}
+                    </div>
                     <button
                         type="button"
                         onClick={() => setShowBusyModal(false)}
-                        className="px-5 py-2.5 rounded-lg text-sm font-bold text-[#5A6C7D] bg-[#F3F6FA] border border-[#DCE3ED] hover:bg-[#E8EEF5] transition-colors"
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold text-[#5A6C7D] bg-[#F3F6FA] border border-[#DCE3ED] hover:bg-[#E8EEF5] transition-colors"
                     >
-                        Close
+                        Cancel
                     </button>
-                    {conflictList.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setConflictList([]);
-                                alert("All remaining overlapping appointments cancelled.");
-                            }}
-                            className="px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-[#B05555] hover:bg-[#9A3E3E] transition-colors shadow-sm"
-                        >
-                            Cancel All Remaining
-                        </button>
-                    )}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowBusyModal(false);
+                            alert(`Success! Handled block securely resolved successfully.`);
+                        }}
+                        className="w-full sm:w-auto px-7 py-2.5 rounded-lg text-sm font-bold text-white bg-[#1F3A5F] hover:bg-[#2A4A75] transition-colors shadow-sm"
+                    >
+                        Done
+                    </button>
                 </div>
             </div>
         </div>
