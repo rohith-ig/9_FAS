@@ -224,9 +224,6 @@ const addGroupMember = async (req,res) => {
         if(!user || user.role !== 'STUDENT') {
             return res.status(404).json({error : "User not found"});
         }
-        if (!appmt.isGroup) {
-            return res.status(400).json({error : "This appointment is not a group appointment"});
-        }
         const appmt = await prisma.appointmentRequest.findUnique({
             where : {id : Number(appmtId)},
             include : {
@@ -239,6 +236,9 @@ const addGroupMember = async (req,res) => {
         });
         if(!appmt || appmt.studentId !== req.user.studentProfile.id) {
             return res.status(404).json({error : "Appointment not found"});
+        }
+        if (!appmt.isGroup) {
+            return res.status(400).json({error : "This appointment is not a group appointment"});
         }
         const currentMembers = appmt._count.students;
         if (currentMembers >= appmt.capacity) {
