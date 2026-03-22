@@ -1,6 +1,7 @@
 "use client";
-import { User, Mail, BookOpen, MapPin, Hash, UserSquare2, X, LogOut } from "lucide-react";
-import { useState } from "react";
+import { User, Mail, BookOpen, MapPin, Hash, UserSquare2, X, LogOut, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import api from "../../../axios";
 
 const allCourses = [
     { id: 1, code: "CS3001", name: "Operating Systems", time: "Tuesdays & Thursdays", semester: "Semester 6" },
@@ -14,6 +15,33 @@ const allCourses = [
 
 export default function FacultyProfilePage() {
     const [showAllCourses, setShowAllCourses] = useState(false);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await api.get('/users/get');
+                setUser(res.data.user);
+            } catch (err) {
+                console.error("Failed to fetch faculty profile", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex h-[calc(100vh-100px)] w-full items-center justify-center text-[#5A6C7D] flex-col gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-[#1F3A5F]" />
+                <p className="font-semibold">Loading Profile...</p>
+            </div>
+        );
+    }
+
+    const fProfile = user?.facultyProfile || {};
 
     return (
         <div className="mx-auto w-full max-w-4xl px-4 py-8 relative">
@@ -38,8 +66,8 @@ export default function FacultyProfilePage() {
                         </div>
                     </div>
 
-                    <h2 className="text-xl font-bold text-[#1F3A5F] px-4 text-center">Dr. Alan Turing</h2>
-                    <p className="text-sm font-medium text-[#4A6FA5] mb-2 px-4 text-center">Associate Professor</p>
+                    <h2 className="text-xl font-bold text-[#1F3A5F] px-4 text-center break-words">{user?.name || "Faculty Member"}</h2>
+                    <p className="text-sm font-medium text-[#4A6FA5] mb-2 px-4 text-center">{fProfile.designation || "No Designation"}</p>
 
                     <button
                         onClick={() => {
@@ -53,12 +81,12 @@ export default function FacultyProfilePage() {
 
                     <div className="w-full border-t border-[#F0F4F8] p-4 flex flex-col gap-3 text-sm">
                         <div className="flex items-center gap-3 text-[#5A6C7D]">
-                            <Hash size={16} className="text-[#A8BCD6]" />
-                            <span className="font-medium">F-2093</span>
+                            <Hash size={16} className="text-[#A8BCD6] flex-shrink-0" />
+                            <span className="font-medium break-all">F-{user?.id || "N/A"}</span>
                         </div>
                         <div className="flex items-center gap-3 text-[#5A6C7D]">
-                            <Mail size={16} className="text-[#A8BCD6]" />
-                            <span className="truncate">aturing@nitc.ac.in</span>
+                            <Mail size={16} className="text-[#A8BCD6] flex-shrink-0" />
+                            <span className="break-all">{user?.email || "No Email"}</span>
                         </div>
                         <div className="flex items-center gap-3 text-[#5A6C7D]">
                             <MapPin size={16} className="text-[#A8BCD6]" />
@@ -75,19 +103,19 @@ export default function FacultyProfilePage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
                             <div className="sm:col-span-2">
                                 <label className="block text-xs text-[#5A6C7D] mb-1">Department</label>
-                                <p className="font-medium text-[#1F3A5F]">Computer Science and Engineering</p>
+                                <p className="font-medium text-[#1F3A5F]">{fProfile.department || "N/A"}</p>
                             </div>
                             <div className="sm:col-span-2">
-                                <label className="block text-xs text-[#5A6C7D] mb-1">Primary Research Focus</label>
-                                <p className="font-medium text-[#1F3A5F]">Artificial Intelligence & Theory of Computation</p>
+                                <label className="block text-xs text-[#5A6C7D] mb-1">Primary Academic Role</label>
+                                <p className="font-medium text-[#1F3A5F] capitalize">{user?.role?.toLowerCase()}</p>
                             </div>
                             <div>
-                                <label className="block text-xs text-[#5A6C7D] mb-1">Highest Qualification</label>
-                                <p className="font-medium text-[#1F3A5F]">Ph.D. in Computer Science</p>
+                                <label className="block text-xs text-[#5A6C7D] mb-1">Account ID</label>
+                                <p className="font-medium text-[#1F3A5F]">{user?.id}</p>
                             </div>
                             <div>
-                                <label className="block text-xs text-[#5A6C7D] mb-1">Years of Experience</label>
-                                <p className="font-medium text-[#1F3A5F]">15+ Years</p>
+                                <label className="block text-xs text-[#5A6C7D] mb-1">Account Status</label>
+                                <p className="font-medium text-emerald-600">Active</p>
                             </div>
                         </div>
                     </div>

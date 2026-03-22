@@ -1,7 +1,38 @@
-import { User, Mail, BookOpen, Phone, ShieldCheck, Bell, AcademicCap, Hash, LogOut } from "lucide-react";
+"use client";
+import { User, Mail, BookOpen, Phone, ShieldCheck, Bell, AcademicCap, Hash, LogOut, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import api from "../../../axios";
 
 export default function StudentProfilePage() {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await api.get('/users/get');
+                setUser(res.data.user);
+            } catch (err) {
+                console.error("Failed to fetch user profile", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex h-[calc(100vh-100px)] w-full items-center justify-center text-[#5A6C7D] flex-col gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-[#1F3A5F]" />
+                <p className="font-semibold">Loading Profile...</p>
+            </div>
+        );
+    }
+
+    const sProfile = user?.studentProfile || {};
+
     return (
         <div className="mx-auto w-full max-w-4xl px-4 py-8">
 
@@ -25,19 +56,17 @@ export default function StudentProfilePage() {
                         </div>
                     </div>
 
-                    <h2 className="text-xl font-bold text-[#1F3A5F]">Ada Lovelace</h2>
-                    <p className="text-sm font-medium text-[#4A6FA5] mb-2">Computer Science & Engineering</p>
-
-
+                    <h2 className="text-xl font-bold text-[#1F3A5F] break-words text-center px-4">{user?.name || "Student Name"}</h2>
+                    <p className="text-sm font-medium text-[#4A6FA5] mb-2 px-4 text-center">{sProfile.department || "No Department"}</p>
 
                     <div className="w-full border-t border-[#F0F4F8] p-4 flex flex-col gap-3 text-sm">
                         <div className="flex items-center gap-3 text-[#5A6C7D]">
-                            <Hash size={16} className="text-[#A8BCD6]" />
-                            <span className="font-medium">B230001CS</span>
+                            <Hash size={16} className="text-[#A8BCD6] flex-shrink-0" />
+                            <span className="font-medium break-all">{sProfile.rollNumber || "N/A"}</span>
                         </div>
                         <div className="flex items-center gap-3 text-[#5A6C7D]">
-                            <Mail size={16} className="text-[#A8BCD6]" />
-                            <span className="truncate">ada@nitc.ac.in</span>
+                            <Mail size={16} className="text-[#A8BCD6] flex-shrink-0" />
+                            <span className="break-all">{user?.email || "No Email"}</span>
                         </div>
 
                         <Link
@@ -57,19 +86,19 @@ export default function StudentProfilePage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
                             <div>
                                 <label className="block text-xs text-[#5A6C7D] mb-1">Degree Program</label>
-                                <p className="font-medium text-[#1F3A5F]">B.Tech</p>
+                                <p className="font-medium text-[#1F3A5F]">{sProfile.designation || "N/A"}</p>
                             </div>
                             <div>
-                                <label className="block text-xs text-[#5A6C7D] mb-1">Current Semester</label>
-                                <p className="font-medium text-[#1F3A5F]">Semester 6</p>
+                                <label className="block text-xs text-[#5A6C7D] mb-1">Role</label>
+                                <p className="font-medium text-[#1F3A5F] capitalize">{user?.role?.toLowerCase()}</p>
                             </div>
                             <div>
-                                <label className="block text-xs text-[#5A6C7D] mb-1">Academic Advisor</label>
-                                <p className="font-medium text-[#1F3A5F]">Dr. Alan Turing</p>
+                                <label className="block text-xs text-[#5A6C7D] mb-1">Account ID</label>
+                                <p className="font-medium text-[#1F3A5F]">USER-{user?.id}</p>
                             </div>
                             <div>
                                 <label className="block text-xs text-[#5A6C7D] mb-1">Enrollment Status</label>
-                                <p className="font-medium text-[#1F3A5F]">Active</p>
+                                <p className="font-medium text-emerald-600">Active</p>
                             </div>
                         </div>
                     </div>
