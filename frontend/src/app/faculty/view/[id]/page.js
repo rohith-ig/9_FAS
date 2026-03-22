@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "../../../../axios";
-import { Loader2, ArrowLeft, CalendarClock, Clock, User, Check, X, CalendarOff, MessageSquare } from "lucide-react";
+import { Check, X, FileText, Loader2, Users } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import Link from "next/link";
 
 export default function FacultyAppointmentDetail() {
@@ -51,7 +52,7 @@ export default function FacultyAppointmentDetail() {
   };
 
   const handleReschedule = () => {
-    alert(`Reschedule request feature coming soon.`);
+    toast.error(`Reschedule request feature coming soon.`);
   };
 
   if (loading) {

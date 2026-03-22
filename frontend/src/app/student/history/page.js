@@ -1,7 +1,8 @@
 "use client"
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Calendar, Clock, ChevronRight, Filter, Loader2 } from "lucide-react";
+import { Calendar, Clock, ChevronRight, Filter, Loader2, Search } from "lucide-react";
+import { toast } from "react-hot-toast";
 import api from "../../../axios";
 
 export default function StudentHistoryPage() {
@@ -67,7 +68,7 @@ export default function StudentHistoryPage() {
 
         setAppointments(updatedAppointments);
 
-        alert("Appointment cancelled. Faculty will be notified.");
+        toast.success("Appointment cancelled. Faculty will be notified.");
     };
 
     const handlePickNewSlot = (apt) => {

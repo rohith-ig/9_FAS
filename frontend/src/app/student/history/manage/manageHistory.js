@@ -2,12 +2,14 @@
 
 import { Calendar, User, Clock, Mail, BookOpen, MapPin, Users, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import api from "../../../../axios";
+import { toast } from "react-hot-toast";
 
 export default function ManageRequests() {
 
   const params = useSearchParams();
+  const router = useRouter();
 
   const name = params.get("name") || "facultyName";
   const email = params.get("email") || "notFound";
@@ -57,7 +59,7 @@ export default function ManageRequests() {
 
   const handleInvite = async () => {
       if (!inviteEmail.trim()) {
-          alert("Please enter a valid email to invite.");
+          toast.error("Please enter a valid email to invite.");
           return;
       }
       setInviting(true);
@@ -67,12 +69,12 @@ export default function ManageRequests() {
               appmtId: aptId,
               email: inviteEmail
           });
-          alert("Group member added successfully!");
+          toast.success("Group member added successfully!");
           setInviteEmail("");
           fetchApt(); // Refresh the list seamlessly
       } catch (error) {
           const errMsg = error.response?.data?.error || "Failed to add member to the group.";
-          alert(errMsg);
+          toast.error(errMsg);
       } finally {
           setInviting(false);
       }

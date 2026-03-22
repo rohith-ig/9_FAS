@@ -2,9 +2,8 @@
 
 import React, { useState } from "react";
 import { useEffect } from "react";
-
-
 import { Plus, Pencil, Trash2, User, Search } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function ManageAccountsPage() {
 
@@ -128,11 +127,11 @@ const handleCSVUpload = async (e) => {
   const data = await res.json();
   
   if (data.success) { 
-    alert("Users uploaded successfully"); 
+    toast.success("Users uploaded successfully"); 
     fetchUsers(); 
   } else {
     // Add an alert so you know if the backend rejected it!
-    alert("Failed to upload: " + data.error);
+    toast.error("Failed to upload: " + data.error);
   }
 
   // ADD THIS LINE to reset the file input!

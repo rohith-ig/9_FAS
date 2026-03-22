@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import api from "../../../axios"
+import { toast } from "react-hot-toast";
 
 const dayHeaders = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -781,7 +782,7 @@ export default function FacultyScheduleViewPage() {
                                         <div className="flex items-center gap-2 shrink-0">
                                             <button 
                                                 onClick={() => {
-                                                    alert(`Triggering Auto-Reschedule workflow for ${conflict.student}...`);
+                                                    toast.success(`Triggering Auto-Reschedule workflow for ${conflict.student}...`);
                                                     setConflictList(prev => prev.filter(c => c.id !== conflict.id));
                                                 }}
                                                 className="px-3 py-1.5 bg-[#F3F6FA] hover:bg-[#E8EEF5] text-[#4A6FA5] text-xs font-bold rounded shadow-sm border border-[#DCE3ED] transition-colors"
@@ -811,7 +812,7 @@ export default function FacultyScheduleViewPage() {
                                  type="button"
                                  onClick={() => {
                                      setConflictList([]);
-                                     alert("All remaining overlapping appointments individually cancelled.");
+                                     toast.success("All remaining appointments selectively cancelled.");
                                  }}
                                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-[#B05555] hover:bg-[#9A3E3E] transition-colors shadow-sm"
                              >
@@ -830,7 +831,7 @@ export default function FacultyScheduleViewPage() {
                         type="button"
                         onClick={() => {
                             setShowBusyModal(false);
-                            alert(`Success! Handled block securely resolved successfully.`);
+                            toast.success(`Busy Status securely resolved successfully.`);
                         }}
                         className="w-full sm:w-auto px-7 py-2.5 rounded-lg text-sm font-bold text-white bg-[#1F3A5F] hover:bg-[#2A4A75] transition-colors shadow-sm"
                     >
