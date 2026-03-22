@@ -1,5 +1,18 @@
 const prisma = require("../config/database");
 
+// controller for individual user fetching
+
+exports.getIndividualUser = async (req, res) => {
+  try { 
+    const resp = req.user;
+    res.status(200).json({ user: resp });
+  }
+  catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Error fetching user" });
+  }
+};
+
 // ADD USER
 exports.addUser = async (req, res) => {
   try {
