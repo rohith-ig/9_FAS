@@ -6,6 +6,7 @@ const userRoutes = require("./routes/users");
 const availRoutes = require("./routes/avail.js");
 const appmtRoutes = require("./routes/appmt.js");
 const adminRoutes = require("./routes/adminRoutes");
+const notificationsRoutes = require("./routes/notificationRoutes");
 dotenv.config();
 
 const app = express();
@@ -21,6 +22,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/avail", availRoutes);
 app.use("/api/appmt", appmtRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/notifications", notificationsRoutes);
 
 const PORT = process.env.PORT || 6969;
 
