@@ -70,7 +70,7 @@ export default function BookAppointmentPage() {
     }
     setSubmitting(true);
     try {
-        const fullNote = `${note}${isGroupMeeting ? ' [Group Meeting]' : ''}${isRecurringMeeting ? ' [Recurring Meeting]' : ''}`.trim();
+        const fullNote = note.trim();
         const startFull = new Date(selectedSlot.start);
         const [h, m] = startTime.split(':').map(Number);
         startFull.setHours(h, m, 0, 0);
