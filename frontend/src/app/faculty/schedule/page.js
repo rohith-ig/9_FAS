@@ -302,7 +302,7 @@ export default function FacultyScheduleViewPage() {
               </p>
             </div>
 
-            <div className="flex overflow-hidden rounded-xl border border-[#C8D3E0] bg-[#F8FAFC] p-1 shadow-inner h-[40px]">
+            <div className="flex overflow-hidden rounded-xl border border-[#C8D3E0] bg-[#F8FAFC] p-1 shadow-inner h-15">
               <button
                 type="button"
                 onClick={() => setActiveTab("agenda")}
