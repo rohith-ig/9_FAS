@@ -147,9 +147,12 @@ export default function FacultyScheduleViewPage() {
   const [saveNote, setSaveNote] = useState("");
   const [busyStart, setBusyStart] = useState("1:00 PM");
   const [busyEnd, setBusyEnd] = useState("5:00 PM");
-  const [busyAction, setBusyAction] = useState("reschedule");
   const [showBusyModal, setShowBusyModal] = useState(false);
 
+  const [conflictList, setConflictList] = useState([
+     { id: 1, student: "Ada Lovelace", purpose: "Project Guidance", time: "2:00 PM - 2:30 PM" },
+     { id: 2, student: "John Doe", purpose: "Career Counseling", time: "3:00 PM - 3:30 PM" }
+  ]);
   const [availabilityByDate, setAvailabilityByDate] = useState(() => ({
     [toDateKey(today)]: ["10:00 AM - 10:30 AM", "2:00 PM - 2:30 PM"],
     [toDateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1))]: [
@@ -746,72 +749,58 @@ export default function FacultyScheduleViewPage() {
       {/* Busy Modal Overlay */}
       {showBusyModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1F3A5F]/40 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-fade-up">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-up">
                 
                 <div className="flex flex-col p-6 border-b border-[#DCE3ED] bg-white relative">
                     <button onClick={() => setShowBusyModal(false)} className="absolute top-6 right-6 text-[#5A6C7D] hover:text-[#1F3A5F] rounded-full p-1 hover:bg-[#F3F6FA] transition">
                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                     <h2 className="text-xl font-bold text-[#1F3A5F]">Review Conflicts</h2>
-                    <p className="text-sm text-[#B05555] mt-1 font-medium leading-relaxed max-w-[90%]">Warning: Setting this time as busy dynamically affects <span className="font-bold underline">2</span> tracked appointments in your registry.</p>
+                    <p className="text-sm text-[#B05555] mt-1 font-medium leading-relaxed max-w-[90%]">Warning: Setting this time as busy dynamically affects <span className="font-bold underline">{conflictList.length}</span> tracked appointments.</p>
                 </div>
                 
                 <div className="p-6 overflow-y-auto space-y-7 bg-[#F4F7FB] flex-1">
-                    
                     <div className="space-y-3">
                         <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider">Affected Appointments</h3>
-                        <div className="space-y-2.5">
-                            {/* Dummy Conflict 1 */}
-                            <div className="flex flex-col bg-white border border-[#E9C5C5] rounded-xl p-3.5 shadow-sm">
-                                <div className="flex justify-between items-start mb-1.5">
-                                    <span className="font-bold text-[#1F3A5F] text-sm">Ada Lovelace</span>
-                                    <span className="text-[10px] font-bold bg-[#FDECEC] text-[#B05555] px-2 py-0.5 rounded border border-[#E4B8B8] uppercase tracking-wider">Conflict</span>
-                                </div>
-                                <span className="text-xs font-medium text-[#5A6C7D]">Project Guidance &bull; 2:00 PM - 2:30 PM</span>
+                        
+                        {conflictList.length === 0 ? (
+                            <div className="p-6 text-center border border-dashed border-[#C8D3E0] rounded-xl bg-white text-[#5A6C7D]">
+                                All conflicts resolved. Safe to close and proceed.
                             </div>
-                            
-                            {/* Dummy Conflict 2 */}
-                             <div className="flex flex-col bg-white border border-[#E9C5C5] rounded-xl p-3.5 shadow-sm">
-                                <div className="flex justify-between items-start mb-1.5">
-                                    <span className="font-bold text-[#1F3A5F] text-sm">John Doe</span>
-                                    <span className="text-[10px] font-bold bg-[#FDECEC] text-[#B05555] px-2 py-0.5 rounded border border-[#E4B8B8] uppercase tracking-wider">Conflict</span>
-                                </div>
-                                <span className="text-xs font-medium text-[#5A6C7D]">Career Counseling &bull; 3:00 PM - 3:30 PM</span>
+                        ) : (
+                            <div className="space-y-3">
+                                {conflictList.map(conflict => (
+                                    <div key={conflict.id} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-[#E9C5C5] rounded-xl p-4 shadow-sm gap-4">
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-bold text-[#1F3A5F] text-sm">{conflict.student}</span>
+                                                <span className="text-[10px] font-bold bg-[#FDECEC] text-[#B05555] px-2 py-0.5 rounded border border-[#E4B8B8] uppercase tracking-wider">Conflict</span>
+                                            </div>
+                                            <span className="text-xs font-medium text-[#5A6C7D]">{conflict.purpose} &bull; {conflict.time}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <button 
+                                                onClick={() => {
+                                                    alert(`Triggering Auto-Reschedule workflow for ${conflict.student}...`);
+                                                    setConflictList(prev => prev.filter(c => c.id !== conflict.id));
+                                                }}
+                                                className="px-3 py-1.5 bg-[#F3F6FA] hover:bg-[#E8EEF5] text-[#4A6FA5] text-xs font-bold rounded shadow-sm border border-[#DCE3ED] transition-colors"
+                                            >
+                                                Reschedule
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    setConflictList(prev => prev.filter(c => c.id !== conflict.id));
+                                                }}
+                                                className="px-3 py-1.5 bg-[#FDECEC] hover:bg-[#FAD4D4] text-[#B05555] text-xs font-bold rounded shadow-sm border border-[#E4B8B8] transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                        <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider">Conflict Handling Strategy</h3>
-                        <div className="grid grid-cols-1 gap-2.5">
-                            <button
-                                type="button"
-                                onClick={() => setBusyAction("cancel")}
-                                className={`flex items-center gap-4 p-4 text-left rounded-xl border transition-all ${busyAction === "cancel" ? "border-[#B05555] bg-[#FDECEC] shadow-sm" : "border-[#DCE3ED] bg-white hover:border-[#E4B8B8]"}`}
-                            >
-                                <div className={`h-4 w-4 rounded-full border flex-shrink-0 flex items-center justify-center ${busyAction === "cancel" ? "border-[#B05555] bg-[#B05555]" : "border-[#C8D3E0]"}`}>
-                                   {busyAction === "cancel" && <span className="h-1.5 w-1.5 rounded-full bg-white"></span>}
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className={`font-bold text-sm ${busyAction === "cancel" ? "text-[#9A3E3E]" : "text-[#1F3A5F]"}`}>Cancel Immediately</span>
-                                    <span className={`text-xs mt-0.5 font-medium ${busyAction === "cancel" ? "text-[#B05555]" : "text-[#5A6C7D]"}`}>Remove strictly automatically and notify students digitally.</span>
-                                </div>
-                            </button>
-                            
-                            <button
-                                type="button"
-                                onClick={() => setBusyAction("reschedule")}
-                                className={`flex items-center gap-4 p-4 text-left rounded-xl border transition-all ${busyAction === "reschedule" ? "border-[#4A6FA5] bg-[#E8EEF5] shadow-sm" : "border-[#DCE3ED] bg-white hover:border-[#C8D3E0]"}`}
-                            >
-                                <div className={`h-4 w-4 rounded-full border flex-shrink-0 flex items-center justify-center ${busyAction === "reschedule" ? "border-[#4A6FA5] bg-[#4A6FA5]" : "border-[#C8D3E0]"}`}>
-                                   {busyAction === "reschedule" && <span className="h-1.5 w-1.5 rounded-full bg-white"></span>}
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className={`font-bold text-sm ${busyAction === "reschedule" ? "text-[#1F3A5F]" : "text-[#1F3A5F]"}`}>Auto-Reschedule Workflow</span>
-                                    <span className={`text-xs mt-0.5 font-medium ${busyAction === "reschedule" ? "text-[#4A6FA5]" : "text-[#5A6C7D]"}`}>Trigger portals enabling alternate slot picking internally.</span>
-                                </div>
-                            </button>
-                        </div>
+                        )}
                     </div>
                 </div>
                 
@@ -821,18 +810,20 @@ export default function FacultyScheduleViewPage() {
                         onClick={() => setShowBusyModal(false)}
                         className="px-5 py-2.5 rounded-lg text-sm font-bold text-[#5A6C7D] bg-[#F3F6FA] border border-[#DCE3ED] hover:bg-[#E8EEF5] transition-colors"
                     >
-                        Abort
+                        Close
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setShowBusyModal(false);
-                            alert(`Confirmed Busy Status overridden securely! Strategy applied: ${busyAction}`);
-                        }}
-                        className="px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-[#B05555] hover:bg-[#9A3E3E] transition-colors shadow-sm"
-                    >
-                        Confirm & Trigger Strategy
-                    </button>
+                    {conflictList.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setConflictList([]);
+                                alert("All remaining overlapping appointments cancelled.");
+                            }}
+                            className="px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-[#B05555] hover:bg-[#9A3E3E] transition-colors shadow-sm"
+                        >
+                            Cancel All Remaining
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
