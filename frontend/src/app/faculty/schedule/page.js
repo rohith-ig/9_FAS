@@ -148,6 +148,7 @@ export default function FacultyScheduleViewPage() {
   const [busyStart, setBusyStart] = useState("1:00 PM");
   const [busyEnd, setBusyEnd] = useState("5:00 PM");
   const [busyAction, setBusyAction] = useState("reschedule");
+  const [showBusyModal, setShowBusyModal] = useState(false);
 
   const [availabilityByDate, setAvailabilityByDate] = useState(() => ({
     [toDateKey(today)]: ["10:00 AM - 10:30 AM", "2:00 PM - 2:30 PM"],
@@ -722,63 +723,18 @@ export default function FacultyScheduleViewPage() {
                   </div>
                 </section>
 
-                {/* Conflict Handling Options */}
-                <section>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-[#1F3A5F]">Conflict Handling Strategy</h3>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <button
-                      type="button"
-                      onClick={() => setBusyAction("cancel")}
-                      className={`relative flex flex-col items-center p-4 rounded-md border transition-all ${busyAction === "cancel"
-                        ? "border-[#B05555] bg-[#FDECEC]"
-                        : "border-[#DCE3ED] bg-white hover:border-[#E4B8B8] hover:bg-[#FFFBFB]"
-                        }`}
-                    >
-                      <span className={`font-semibold text-sm text-center ${busyAction === "cancel" ? "text-[#9A3E3E]" : "text-[#5A6C7D]"}`}>Cancel All</span>
-                      <span className={`text-xs text-center mt-1 ${busyAction === "cancel" ? "text-[#B05555]" : "text-[#9AAABC]"}`}>Cancel overlapping requests immediately</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setBusyAction("reschedule")}
-                      className={`relative flex flex-col items-center p-4 rounded-md border transition-all ${busyAction === "reschedule"
-                        ? "border-[#1F3A5F] bg-[#F8FAFC]"
-                        : "border-[#DCE3ED] bg-white hover:border-[#C8D3E0] hover:bg-[#F8FAFC]"
-                        }`}
-                    >
-                      <span className={`font-semibold text-sm text-center ${busyAction === "reschedule" ? "text-[#1F3A5F]" : "text-[#5A6C7D]"}`}>Auto-Reschedule</span>
-                      <span className={`text-xs text-center mt-1 ${busyAction === "reschedule" ? "text-[#2A4A75]" : "text-[#9AAABC]"}`}>Send requests to pick a new time</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setBusyAction("manual")}
-                      className={`relative flex flex-col items-center p-4 rounded-md border transition-all ${busyAction === "manual"
-                        ? "border-[#1F3A5F] bg-[#F8FAFC]"
-                        : "border-[#DCE3ED] bg-white hover:border-[#C8D3E0] hover:bg-[#F8FAFC]"
-                        }`}
-                    >
-                      <span className={`font-semibold text-sm text-center ${busyAction === "manual" ? "text-[#1F3A5F]" : "text-[#5A6C7D]"}`}>Manual Triage</span>
-                      <span className={`text-xs text-center mt-1 ${busyAction === "manual" ? "text-[#2A4A75]" : "text-[#9AAABC]"}`}>Review each conflict case by case</span>
-                    </button>
-                  </div>
-                </section>
-
                 {/* Submit Container */}
                 <div className="flex flex-col items-center gap-3 pt-2">
-                  {/* API CALL REQUIRED: POST /avail/busy (Set busy status and trigger triaged conflict rescheduling workflow) */}
                   <button
                     type="button"
-                    className={`w-full sm:w-auto min-w-[200px] rounded-md px-6 py-2.5 text-sm font-semibold transition-colors ${canEditAvailability && isBusyRangeValid
+                    className={`w-full sm:w-auto min-w-[250px] rounded-lg px-6 py-3 text-sm font-bold transition-colors shadow-sm ${canEditAvailability && isBusyRangeValid
                       ? "bg-[#B05555] text-white hover:bg-[#9A3E3E]"
                       : "bg-[#9AAABC] text-white cursor-not-allowed"
                       }`}
                     disabled={!canEditAvailability || !isBusyRangeValid}
-                    onClick={() => { }}
+                    onClick={() => setShowBusyModal(true)}
                   >
-                    Confirm Busy Status
+                    Review Conflicts & Set Busy
                   </button>
                 </div>
               </div>
@@ -786,6 +742,101 @@ export default function FacultyScheduleViewPage() {
           )}
         </section>
       </section>
-    </main >
+
+      {/* Busy Modal Overlay */}
+      {showBusyModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1F3A5F]/40 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] animate-fade-up">
+                
+                <div className="flex flex-col p-6 border-b border-[#DCE3ED] bg-white relative">
+                    <button onClick={() => setShowBusyModal(false)} className="absolute top-6 right-6 text-[#5A6C7D] hover:text-[#1F3A5F] rounded-full p-1 hover:bg-[#F3F6FA] transition">
+                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                    <h2 className="text-xl font-bold text-[#1F3A5F]">Review Conflicts</h2>
+                    <p className="text-sm text-[#B05555] mt-1 font-medium leading-relaxed max-w-[90%]">Warning: Setting this time as busy dynamically affects <span className="font-bold underline">2</span> tracked appointments in your registry.</p>
+                </div>
+                
+                <div className="p-6 overflow-y-auto space-y-7 bg-[#F4F7FB] flex-1">
+                    
+                    <div className="space-y-3">
+                        <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider">Affected Appointments</h3>
+                        <div className="space-y-2.5">
+                            {/* Dummy Conflict 1 */}
+                            <div className="flex flex-col bg-white border border-[#E9C5C5] rounded-xl p-3.5 shadow-sm">
+                                <div className="flex justify-between items-start mb-1.5">
+                                    <span className="font-bold text-[#1F3A5F] text-sm">Ada Lovelace</span>
+                                    <span className="text-[10px] font-bold bg-[#FDECEC] text-[#B05555] px-2 py-0.5 rounded border border-[#E4B8B8] uppercase tracking-wider">Conflict</span>
+                                </div>
+                                <span className="text-xs font-medium text-[#5A6C7D]">Project Guidance &bull; 2:00 PM - 2:30 PM</span>
+                            </div>
+                            
+                            {/* Dummy Conflict 2 */}
+                             <div className="flex flex-col bg-white border border-[#E9C5C5] rounded-xl p-3.5 shadow-sm">
+                                <div className="flex justify-between items-start mb-1.5">
+                                    <span className="font-bold text-[#1F3A5F] text-sm">John Doe</span>
+                                    <span className="text-[10px] font-bold bg-[#FDECEC] text-[#B05555] px-2 py-0.5 rounded border border-[#E4B8B8] uppercase tracking-wider">Conflict</span>
+                                </div>
+                                <span className="text-xs font-medium text-[#5A6C7D]">Career Counseling &bull; 3:00 PM - 3:30 PM</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                        <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider">Conflict Handling Strategy</h3>
+                        <div className="grid grid-cols-1 gap-2.5">
+                            <button
+                                type="button"
+                                onClick={() => setBusyAction("cancel")}
+                                className={`flex items-center gap-4 p-4 text-left rounded-xl border transition-all ${busyAction === "cancel" ? "border-[#B05555] bg-[#FDECEC] shadow-sm" : "border-[#DCE3ED] bg-white hover:border-[#E4B8B8]"}`}
+                            >
+                                <div className={`h-4 w-4 rounded-full border flex-shrink-0 flex items-center justify-center ${busyAction === "cancel" ? "border-[#B05555] bg-[#B05555]" : "border-[#C8D3E0]"}`}>
+                                   {busyAction === "cancel" && <span className="h-1.5 w-1.5 rounded-full bg-white"></span>}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className={`font-bold text-sm ${busyAction === "cancel" ? "text-[#9A3E3E]" : "text-[#1F3A5F]"}`}>Cancel Immediately</span>
+                                    <span className={`text-xs mt-0.5 font-medium ${busyAction === "cancel" ? "text-[#B05555]" : "text-[#5A6C7D]"}`}>Remove strictly automatically and notify students digitally.</span>
+                                </div>
+                            </button>
+                            
+                            <button
+                                type="button"
+                                onClick={() => setBusyAction("reschedule")}
+                                className={`flex items-center gap-4 p-4 text-left rounded-xl border transition-all ${busyAction === "reschedule" ? "border-[#4A6FA5] bg-[#E8EEF5] shadow-sm" : "border-[#DCE3ED] bg-white hover:border-[#C8D3E0]"}`}
+                            >
+                                <div className={`h-4 w-4 rounded-full border flex-shrink-0 flex items-center justify-center ${busyAction === "reschedule" ? "border-[#4A6FA5] bg-[#4A6FA5]" : "border-[#C8D3E0]"}`}>
+                                   {busyAction === "reschedule" && <span className="h-1.5 w-1.5 rounded-full bg-white"></span>}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className={`font-bold text-sm ${busyAction === "reschedule" ? "text-[#1F3A5F]" : "text-[#1F3A5F]"}`}>Auto-Reschedule Workflow</span>
+                                    <span className={`text-xs mt-0.5 font-medium ${busyAction === "reschedule" ? "text-[#4A6FA5]" : "text-[#5A6C7D]"}`}>Trigger portals enabling alternate slot picking internally.</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="p-5 border-t border-[#DCE3ED] bg-white flex flex-col sm:flex-row justify-end gap-3 z-10 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)]">
+                    <button
+                        type="button"
+                        onClick={() => setShowBusyModal(false)}
+                        className="px-5 py-2.5 rounded-lg text-sm font-bold text-[#5A6C7D] bg-[#F3F6FA] border border-[#DCE3ED] hover:bg-[#E8EEF5] transition-colors"
+                    >
+                        Abort
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setShowBusyModal(false);
+                            alert(`Confirmed Busy Status overridden securely! Strategy applied: ${busyAction}`);
+                        }}
+                        className="px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-[#B05555] hover:bg-[#9A3E3E] transition-colors shadow-sm"
+                    >
+                        Confirm & Trigger Strategy
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+    </main>
   );
 }

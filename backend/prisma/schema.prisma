@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url    = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -14,67 +14,86 @@ model User {
   role           Role
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  profilePic     String   
-  notifications  Notification[]       
+  profilePic     String
   facultyProfile FacultyProfile?
   studentProfile StudentProfile?
+  notifications   Notification[]
 }
 
 model StudentProfile {
-  id          Int    @id @default(autoincrement())
-  userId      Int    @unique
-  rollNumber  String @unique
-  designation String
-  department  String
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  appointmentRequests AppointmentRequest[] 
-  appointments AppointmentUsers[]
+  id                  Int                  @id @default(autoincrement())
+  userId              Int                  @unique
+  rollNumber          String               @unique
+  designation         String
+  department          String
+  appointmentRequests AppointmentRequest[]
+  appointments        AppointmentUsers[]
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model FacultyProfile {
-  id          Int    @id @default(autoincrement())
-  userId      Int    @unique
-  department  String
-  designation String
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  appointmentRequests AppointmentRequest[] 
-  availabilities FacultyAvailability[]
+  id                  Int                   @id @default(autoincrement())
+  userId              Int                   @unique
+  department          String
+  designation         String
+  appointmentRequests AppointmentRequest[]
+  availabilities      FacultyAvailability[]
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model AppointmentRequest {
-  id         Int      @id @default(autoincrement())
-  studentId   Int
-  facultyId   Int
-  start      DateTime
-  end        DateTime
-  purpose   String
-  note      String?
-  cancellationNote   String?
-  status      Status   @default(PENDING)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  capacity    Int
-  isGroup     Boolean  @default(false)
-  student     StudentProfile     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  faculty     FacultyProfile     @relation(fields: [facultyId], references: [id], onDelete: Cascade)
-  students   AppointmentUsers[]
+  id               Int                @id @default(autoincrement())
+  studentId        Int
+  facultyId        Int
+  start            DateTime
+  status           Status             @default(PENDING)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  note             String?
+  purpose          String
+  end              DateTime
+  cancellationNote String?
+  capacity         Int
+  isGroup          Boolean            @default(false)
+  faculty          FacultyProfile     @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  student          StudentProfile     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  students         AppointmentUsers[]
 }
 
 model AppointmentUsers {
-  id            Int      @id @default(autoincrement())
+  id            Int                @id @default(autoincrement())
   appointmentId Int
   userId        Int
-  appointment    AppointmentRequest @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  student        StudentProfile               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointment   AppointmentRequest @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  student       StudentProfile     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([appointmentId, userId])
 }
 
 model FacultyAvailability {
-  id         Int      @id @default(autoincrement())
+  id        Int            @id @default(autoincrement())
   start     DateTime
-  end        DateTime
-  facultyId  Int
-  faculty    FacultyProfile  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  end       DateTime
+  facultyId Int
+  faculty   FacultyProfile @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+}
+
+model Timetable {
+  id          Int    @id @default(autoincrement())
+  facultyName String
+  day         String
+  time        String
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    Int
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  link      String?
+  user User @relation(fields: [userId], references: [id])
 }
 
 enum Status {
@@ -88,22 +107,4 @@ enum Role {
   ADMIN
   FACULTY
   STUDENT
-}
-
-model Timetable {
-  id           Int    @id @default(autoincrement())
-  facultyName  String
-  day          String
-  time         String
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  userId    Int
-  title     String
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  link      String?
-  user User @relation(fields: [userId], references: [id])
 }

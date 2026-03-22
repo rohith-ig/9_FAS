@@ -17,6 +17,7 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);  
   const dropdownRef = useRef(null);
+  const userData = useContext(Context).userData;
 
   const fetchNotifications = async () => {
     try {
