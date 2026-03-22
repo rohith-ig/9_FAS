@@ -8,6 +8,7 @@ const appmtRoutes = require("./routes/appmt.js");
 const adminRoutes = require("./routes/adminRoutes");
 const ticketRoutes = require("./routes/tickets");
 
+const notificationsRoutes = require("./routes/notificationRoutes");
 dotenv.config();
 
 const app = express();
@@ -25,6 +26,7 @@ app.use("/api/appmt", appmtRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/tickets", ticketRoutes);
 
+app.use("/api/notifications", notificationsRoutes);
 
 const PORT = process.env.PORT || 6969;
 

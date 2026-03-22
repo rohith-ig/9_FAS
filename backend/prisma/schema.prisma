@@ -14,7 +14,8 @@ model User {
   role           Role
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  profilePic     String?          
+  profilePic     String?        
+  notifications  Notification[]       
   facultyProfile FacultyProfile?
   studentProfile StudentProfile?
   tickets Ticket[]
@@ -102,7 +103,7 @@ model Timetable {
 model Ticket {
   id          Int      @id @default(autoincrement())
   topic       String   // Matches: "Unable to book appointment" [1]
-  description String?   // ✅ add this (admin page needs it)
+  description String?   // add this (admin page needs it)
 
   ticketStatus     TSVAL   @default(OPEN) // Matches: "Open" or "Resolved" [1]
   createdAt   DateTime @default(now())  // Matches the "date" field [1]
@@ -117,4 +118,15 @@ model Ticket {
 enum TSVAL{
   OPEN
   RESOLVED
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    Int
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  link      String?
+  user User @relation(fields: [userId], references: [id])
 }
