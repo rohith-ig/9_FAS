@@ -90,9 +90,30 @@ export default function FacultyDashboard() {
     }, [fetchDetails]);
 
 
-    const pendingRequests = [...facultyAppointments]
+    const groupAppointments = (appts) => {
+        const grouped = [];
+        const seen = new Set();
+        for (const appt of appts) {
+            if (appt.recurrenceId) {
+                if (seen.has(appt.recurrenceId)) continue;
+                seen.add(appt.recurrenceId);
+                const series = appts.filter(a => a.recurrenceId === appt.recurrenceId);
+                grouped.push({
+                    ...appt,
+                    isGroupedSeries: true,
+                    seriesCount: series.length,
+                    recurrenceRule: appt.recurrenceRule
+                });
+            } else {
+                grouped.push(appt);
+            }
+        }
+        return grouped;
+    };
+
+    const pendingRequests = groupAppointments([...facultyAppointments]
         .filter(apt => apt.status === 'PENDING')
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || b.id - a.id)
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || b.id - a.id))
         .slice(0, 4);
     
     const handleStatusUpdate = async (id, status) => {
@@ -184,8 +205,13 @@ export default function FacultyDashboard() {
                                                 </div>
                                                 <div>
                                                     <h4 className="font-semibold text-[#1F3A5F] text-lg">{apt.students[0].student.user.name} <span className="text-sm font-normal text-[#5A6C7D]">({apt.students[0].student.rollNumber})</span></h4>
-                                                    <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
-                                                        <Clock size={14} /> {new Date(apt.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {apt.purpose}
+                                                    <p className="text-sm text-[#5A6C7D] flex flex-wrap items-center gap-2 mt-1">
+                                                        <span className="flex items-center gap-1"><Clock size={14} /> {new Date(apt.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {apt.purpose}</span>
+                                                        {apt.isGroupedSeries && (
+                                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-1 ml-1">
+                                                                ⟳ {apt.recurrenceRule} ({apt.seriesCount}x)
+                                                            </span>
+                                                        )}
                                                     </p>
                                                 </div>
                                             </div>
