@@ -106,6 +106,33 @@ const handleManualUpload = async () => {
     setManualUploadStatus("Upload failed");
   }
 };
+
+const handleRemoveSlots = async () => {
+  if (!selectedFaculty || selectedSlots.length === 0) return;
+
+  try {
+    const res = await fetch("http://localhost:6969/api/admin/delete-slots", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        faculty: selectedFaculty,
+        slots: selectedSlots
+      })
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      setManualUploadStatus("Slots removed successfully!");
+      setSelectedSlots([]);
+    } else {
+      setManualUploadStatus(result.message || "Delete failed");
+    }
+  } catch (err) {
+    console.error(err);
+    setManualUploadStatus("Delete failed");
+  }
+};
 /* ================= EXISTING LOGIC ================= */
 
 const getOccupiedCells = (slots)=>{
@@ -330,6 +357,13 @@ ${isColored(day,time) ? "bg-[#4A6FA5]/40" : "hover:bg-[#F2F6FC]"}
     className="px-6 py-3 rounded-lg text-white font-medium bg-gradient-to-r from-[#2A4A75] to-[#4A6FA5] hover:opacity-90 transition"
   >
     Save Selected Slots
+  </button>
+
+  <button
+    onClick={handleRemoveSlots}
+    className="px-6 py-3 rounded-lg text-white font-medium bg-red-500 hover:bg-red-600 transition"
+  >
+    Remove Selected Slots
   </button>
 
   <button
