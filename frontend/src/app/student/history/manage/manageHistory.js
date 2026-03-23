@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, User, Clock, Mail, BookOpen, MapPin, Users, Loader2 } from "lucide-react";
+import { Calendar, User, Clock, Mail, BookOpen, MapPin, Users, Loader2, CalendarClock } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../../../../axios";
@@ -29,6 +29,7 @@ export default function ManageRequests() {
 
   const [purpose, setPurpose] = useState("Loading...");
   const [note, setNote] = useState("Loading...");
+  const [seriesInfo, setSeriesInfo] = useState(null);
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
@@ -45,6 +46,18 @@ export default function ManageRequests() {
         setCreatorId(found.studentId);
         setPurpose(found.purpose || "Not Specified");
         setNote(found.note || "No additional notes provided.");
+        
+        if (found.recurrenceId) {
+            const series = response.data.filter(a => a.recurrenceId === found.recurrenceId);
+            if (series.length > 0) {
+                setSeriesInfo({
+                    rule: found.recurrenceRule,
+                    start: new Date(series[0].start),
+                    end: new Date(series[series.length - 1].start),
+                    total: series.length
+                });
+            }
+        }
       }
     } catch (error) {
       console.error("Failed to fetch group details:", error);
@@ -143,6 +156,25 @@ export default function ManageRequests() {
             <h4 className="text-sm font-bold text-[#1F3A5F] mb-1.5 align-middle">Additional Notes</h4>
             <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed bg-[#F8FAFC] p-4 rounded border border-[#E8EEF5]">{note}</p>
           </div>
+
+          {seriesInfo && (
+            <div className="border-t border-[#E8EEF5] pt-6 mt-6 mb-2">
+               <h4 className="text-sm font-bold text-[#1F3A5F] mb-3 flex items-center gap-2"><CalendarClock size={16} className="text-[#4A6FA5]" /> Recurring Series Info</h4>
+               <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex items-center gap-3 w-full max-w-sm">
+                   <div className="h-10 w-10 bg-white border border-indigo-200 rounded-full flex items-center justify-center text-indigo-600">
+                       <CalendarClock size={18} />
+                   </div>
+                   <div>
+                       <p className="text-indigo-900 text-sm font-bold uppercase tracking-wide">
+                           {seriesInfo.rule} ({seriesInfo.total} Total Instances)
+                       </p>
+                       <p className="text-[11px] text-indigo-700 font-semibold mt-0.5">
+                           {seriesInfo.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric'})} - {seriesInfo.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                       </p>
+                   </div>
+               </div>
+            </div>
+          )}
 
           {(status === "Cancelled" || status === "Rejected") && cancelNote && (
             <div className="mt-6 p-4 rounded-lg bg-rose-50 border border-rose-100">
