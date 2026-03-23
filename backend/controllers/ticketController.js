@@ -58,7 +58,7 @@ exports.getMyTickets = async (req, res) => {
 };
 
 // RESOLVE TICKET (Admin)
-exports.resolveTicket = async (req, res) => {
+exports.resolveTicket = async (req, res) => { 
   try {
     const { id } = req.params;
 

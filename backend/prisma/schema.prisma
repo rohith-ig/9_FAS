@@ -130,3 +130,12 @@ model Notification {
   link      String?
   user User @relation(fields: [userId], references: [id])
 }
+
+model BackupLog {
+  id        Int      @id @default(autoincrement())
+  status    String   @default("SUCCESS") // Can be "SUCCESS" or "FAILED"
+  createdAt DateTime @default(now())
+
+  // Relation to know which Admin created the backup
+  admin     User     @relation(fields: [adminId], references: [id])
+}
