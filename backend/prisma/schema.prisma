@@ -17,7 +17,7 @@ model User {
   profilePic     String
   facultyProfile FacultyProfile?
   studentProfile StudentProfile?
-  notifications   Notification[]
+  notifications  Notification[]
 }
 
 model StudentProfile {
@@ -39,6 +39,7 @@ model FacultyProfile {
   appointmentRequests AppointmentRequest[]
   availabilities      FacultyAvailability[]
   user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  busyblocks          Busyblocks[]
 }
 
 model AppointmentRequest {
@@ -93,7 +94,15 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   link      String?
-  user User @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Busyblocks {
+  id        Int            @id @default(autoincrement())
+  facultyId Int
+  start     DateTime
+  end       DateTime
+  faculty   FacultyProfile @relation(fields: [facultyId], references: [id], onDelete: Cascade)
 }
 
 enum Status {

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import api from "../../../axios"
+import { toast } from "react-hot-toast";
 
 const dayHeaders = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -149,10 +150,7 @@ export default function FacultyScheduleViewPage() {
   const [busyEnd, setBusyEnd] = useState("5:00 PM");
   const [showBusyModal, setShowBusyModal] = useState(false);
 
-  const [conflictList, setConflictList] = useState([
-    { id: 1, student: "Ada Lovelace", purpose: "Project Guidance", time: "2:00 PM - 2:30 PM" },
-    { id: 2, student: "John Doe", purpose: "Career Counseling", time: "3:00 PM - 3:30 PM" }
-  ]);
+  const [conflictList, setConflictList] = useState([]);
   const [availabilityByDate, setAvailabilityByDate] = useState(() => ({
     [toDateKey(today)]: ["10:00 AM - 10:30 AM", "2:00 PM - 2:30 PM"],
     [toDateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1))]: [
@@ -256,6 +254,31 @@ export default function FacultyScheduleViewPage() {
     } catch (err) {
       setSaveNote("Failed to save some slots. Check conflicts or times.");
       console.error(err);
+    }
+  };
+
+  const handleReviewConflicts = async () => {
+    const [year, month, day] = selectedDateKey.split("-").map(Number);
+    const startDate = new Date(year, month - 1, day);
+    startDate.setMinutes(startDate.getMinutes() + toMinutes(busyStart));
+    const endDate = new Date(year, month - 1, day);
+    endDate.setMinutes(endDate.getMinutes() + toMinutes(busyEnd));
+
+    try {
+      const res = await api.post('/appmt/time', {
+        start: startDate.toISOString(),
+        end: endDate.toISOString()
+      });
+      const conflicts = res.data.map(appmt => ({
+        id: appmt.id,
+        student: appmt.students[0]?.student?.user?.name || "Student",
+        purpose: appmt.purpose,
+        time: formatInterval(new Date(appmt.start), new Date(appmt.end))
+      }));
+      setConflictList(conflicts);
+      setShowBusyModal(true);
+    } catch(err) {
+      toast.error("Failed to check conflicts.");
     }
   };
 
@@ -735,7 +758,7 @@ export default function FacultyScheduleViewPage() {
                       : "bg-[#9AAABC] text-white cursor-not-allowed"
                       }`}
                     disabled={!canEditAvailability || !isBusyRangeValid}
-                    onClick={() => setShowBusyModal(true)}
+                    onClick={handleReviewConflicts}
                   >
                     Review Conflicts & Set Busy
                   </button>
@@ -780,17 +803,24 @@ export default function FacultyScheduleViewPage() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <button
-                            onClick={() => {
-                              alert(`Triggering Auto-Reschedule workflow for ${conflict.student}...`);
-                              setConflictList(prev => prev.filter(c => c.id !== conflict.id));
+                            onClick={async () => {
+                              try {
+                                await api.post(`/appmt/update/${conflict.id}`, { status: 'CANCELLED', cancel: 'Faculty is busy during the appointment time' });
+                                toast.success(`Triggering Auto-Reschedule workflow for ${conflict.student}...`);
+                                setConflictList(prev => prev.filter(c => c.id !== conflict.id));
+                              } catch(e) { toast.error("Failed to cancel.") }
                             }}
                             className="px-3 py-1.5 bg-[#F3F6FA] hover:bg-[#E8EEF5] text-[#4A6FA5] text-xs font-bold rounded shadow-sm border border-[#DCE3ED] transition-colors"
                           >
                             Reschedule
                           </button>
                           <button
-                            onClick={() => {
-                              setConflictList(prev => prev.filter(c => c.id !== conflict.id));
+                            onClick={async () => {
+                              try {
+                                await api.post(`/appmt/update/${conflict.id}`, { status: 'CANCELLED', cancel: 'Faculty is busy during the appointment time' });
+                                setConflictList(prev => prev.filter(c => c.id !== conflict.id));
+                                toast.success("Cancelled dynamically.");
+                              } catch(e) { toast.error("Failed to cancel.") }
                             }}
                             className="px-3 py-1.5 bg-[#FDECEC] hover:bg-[#FAD4D4] text-[#B05555] text-xs font-bold rounded shadow-sm border border-[#E4B8B8] transition-colors"
                           >
@@ -809,9 +839,15 @@ export default function FacultyScheduleViewPage() {
                 {conflictList.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setConflictList([]);
-                      alert("All remaining overlapping appointments individually cancelled.");
+                    onClick={async () => {
+                      try {
+                        await api.post('/appmt/bulkCancel', {
+                           appointmentIds: conflictList.map(c => c.id),
+                           cancelNote: "Faculty set this time as busy."
+                        });
+                        setConflictList([]);
+                        toast.success("All remaining overlapping appointments individually cancelled.");
+                      } catch(e) { toast.error("Failed to cancel remaining."); }
                     }}
                     className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-[#B05555] hover:bg-[#9A3E3E] transition-colors shadow-sm"
                   >
@@ -828,9 +864,23 @@ export default function FacultyScheduleViewPage() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setShowBusyModal(false);
-                  alert(`Success! Handled block securely resolved successfully.`);
+                onClick={async () => {
+                  try {
+                    const [year, month, day] = selectedDateKey.split("-").map(Number);
+                    const startDate = new Date(year, month - 1, day);
+                    startDate.setMinutes(startDate.getMinutes() + toMinutes(busyStart));
+                    const endDate = new Date(year, month - 1, day);
+                    endDate.setMinutes(endDate.getMinutes() + toMinutes(busyEnd));
+                    await api.post('/avail/busy', {
+                       start: startDate.toISOString(),
+                       end: endDate.toISOString()
+                    });
+                    setShowBusyModal(false);
+                    toast.success(`Success! Handled block securely resolved successfully.`);
+                    setTimeout(() => window.location.reload(), 1500);
+                  } catch(err) {
+                    toast.error(err.response?.data?.error || "Failed to create busy block");
+                  }
                 }}
                 className="w-full sm:w-auto px-7 py-2.5 rounded-lg text-sm font-bold text-white bg-[#1F3A5F] hover:bg-[#2A4A75] transition-colors shadow-sm"
               >

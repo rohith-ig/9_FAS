@@ -47,7 +47,21 @@ const getAvailability = async (req, res) => {
         end: true,
       },
     });
-    const freeSlots = subtractIntervals(availability, appointments);
+    const busyBlocks = await prisma.busyblocks.findMany({
+      where: {
+        ...(facultyId && { facultyId }),
+        start: {
+          gte: now,
+        },
+      },
+      select: {
+        facultyId: true,
+        start: true,
+        end: true,
+      },
+    });
+    const allBusy = [...appointments, ...busyBlocks];
+    const freeSlots = subtractIntervals(availability, allBusy);
     res.json(freeSlots);
   } catch (error) {
     console.error("Error fetching availability:", error);
@@ -155,7 +169,42 @@ const createAvailability = async (req, res) => {
     }
 };
 
+const deleteAvailability = async (req, res) => {
+    try {
+        const { start, end } = req.body;
+        if (req.user.role !== 'FACULTY') {
+            return res.status(403).json({ error: 'Only faculty members can delete availability slots' });
+        }
+        const busy = await prisma.busyblocks.findFirst({
+            where : {
+                facultyId : req.user.facultyProfile.id,
+                start : {
+                    lte : new Date(end)
+                },
+                end : {
+                    gte : new Date(start)
+                }
+            }
+        });
+        if(busy) {
+            return res.status(400).json({ error: 'This time slot overlaps with an existing busy block' });
+        }
+        const add = await prisma.busyblocks.create({
+            data : {
+                facultyId : req.user.facultyProfile.id,
+                start : new Date(start),
+                end : new Date(end)
+            }
+        });
+        res.status(201).json(add);  
+      } catch (error) { 
+        console.error('Error deleting availability slot:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
 module.exports = {
     getAvailability,
     createAvailability,
+    deleteAvailability
 };  
