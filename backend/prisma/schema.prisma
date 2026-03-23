@@ -18,7 +18,6 @@ model User {
   facultyProfile FacultyProfile?
   studentProfile StudentProfile?
   tickets Ticket[]
-
   notifications  Notification[]
 }
 
@@ -120,41 +119,22 @@ enum Role {
   STUDENT
 }
 
-model Timetable {
-  id           Int    @id @default(autoincrement())
-  facultyName  String
-  day          String
-  time         String
-}
-
 
 model Ticket {
   id          Int      @id @default(autoincrement())
   topic       String   // Matches: "Unable to book appointment" [1]
   description String?   // add this (admin page needs it)
 
-  ticketStatus     TSVAL   @default(OPEN) // Matches: "Open" or "Resolved" [1]
+  ticketStatus     TSVAL   @default(OPEN) 
   createdAt   DateTime @default(now())  // Matches the "date" field [1]
   updatedAt   DateTime @updatedAt
 
-  // Foreign key to link the ticket to the specific student/user who raised it
   userId      Int      
   user        User     @relation(fields: [userId], references: [id])
 }
 
 
-enum TSVAL{
+enum TSVAL {
   OPEN
   RESOLVED
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  userId    Int
-  title     String
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  link      String?
-  user User @relation(fields: [userId], references: [id])
 }
