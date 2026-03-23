@@ -13,25 +13,9 @@ export default function SearchFaculty() {
   const fetchFaculties = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get('/avail');
-      
-      // Deduplicate faculties from slots
-      const uniqueFaculties = [];
-      const seenIds = new Set();
-      
-      for (const slot of response.data) {
-        if (slot.faculty && !seenIds.has(slot.facultyId)) {
-          seenIds.add(slot.facultyId);
-          uniqueFaculties.push({
-            id: slot.facultyId,
-            name: slot.faculty.user?.name,
-            designation: slot.faculty.designation,
-            department: slot.faculty.department
-          });
-        }
-      }
-      
-      setFaculties(uniqueFaculties);
+      const response = await api.get('/users/faculty');
+      console.log("Fetched faculties:", response.data);
+      setFaculties(response.data);
     } catch (error) {
       console.error("Failed to fetch faculties:", error);
     } finally {
@@ -44,7 +28,7 @@ export default function SearchFaculty() {
   }, [fetchFaculties]);
 
   const filteredFaculty = faculties.filter((f) => {
-    const value = searchMode === "name" ? f.name : f.designation;
+    const value = searchMode === "name" ? f.user.name : f.designation;
     return value?.toLowerCase().includes(searchText.toLowerCase());
   });
 

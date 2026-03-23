@@ -5,7 +5,8 @@ const {
   editFacultySlot,
   deleteFacultySlot,
   uploadCSVTimetable,
-  uploadManualSlots
+  uploadManualSlots,
+  deleteManualSlots
 } = require("../controllers/adminController");
 
 const router = express.Router();
@@ -24,5 +25,8 @@ router.post("/upload-csv", uploadCSVTimetable);
 
 //manual upload
 router.post("/upload-slots", uploadManualSlots);
+
+//manual delete slot
+router.delete("/delete-slots", deleteManualSlots);
 
 module.exports = router;

@@ -39,6 +39,20 @@ const postAppointmentRequest = async (req, res) => {
         if(existingCheck) {
             return res.status(400).json({ error: 'The selected time slot overlaps with an already approved appointment' });
         }
+        const findBusy = await prisma.busyblocks.findFirst({
+            where : {
+                facultyId : facultyId,
+                start : {
+                    lt : new Date(new Date(start).getTime() + duration * 60000)
+                },
+                end : {
+                    gt : new Date(start)
+                }
+            }
+        });
+        if(findBusy) {
+            return res.status(400).json({ error: 'The selected time slot overlaps with a busy block of the faculty member' });
+        }   
         const create = await prisma.appointmentRequest.create({
             data: {
                 studentId: req.user.studentProfile.id,
@@ -267,9 +281,79 @@ const addGroupMember = async (req,res) => {
     } 
 }
 
+const getAppointmentByTime = async (req, res) => {
+    try {
+        const { start , end } = req.body;
+        if(req.user.role === 'STUDENT') {
+            return res.status(403).json({error : "Unauthorized"});
+        }
+        const appointments = await prisma.appointmentRequest.findMany({
+            where : {
+                facultyId : req.user.facultyProfile.id,
+                start : {
+                    gte : new Date(start)
+                },
+                end : {
+                    lte : new Date(end)
+                },
+                status : "APPROVED"
+            },
+            include : {
+                students : {
+                    include : {
+                        student : {
+                            include : {
+                                user : {
+                                    select : {
+                                        name : true,
+                                        email : true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { start: 'asc' },
+        });
+        res.json(appointments);
+    }
+    catch (e) {
+        console.log(e);
+        res.status(500).json({"Error": "Internal Server Error"});
+    }
+}
+
+const bulkCancel = async (req, res) => {
+    try {
+        const { appointmentIds, cancelNote } = req.body;
+        if (req.user.role !== 'FACULTY') {
+            return res.status(403).json({ error: 'Only faculty members can bulk cancel appointments' });
+        }
+        const update = await prisma.appointmentRequest.updateMany({
+            where: {
+                id: { in: appointmentIds.map(id => Number(id)) },
+                facultyId: req.user.facultyProfile.id,
+                status: 'APPROVED'
+            },
+            data: {
+                status: 'CANCELLED',
+                cancellationNote: cancelNote
+            }
+        });
+        res.json({ success: update });
+    }
+    catch (e) {
+        console.log(e);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
 module.exports = {
     postAppointmentRequest,
     getAppointments,
     updateAppointmentStatus,
-    addGroupMember
+    addGroupMember,
+    getAppointmentByTime,
+    bulkCancel
 };

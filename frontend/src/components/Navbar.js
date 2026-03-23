@@ -1,9 +1,11 @@
 "use client"
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
+import { studentContext } from "../app/student/context.js";
 import { Menu, X, Bell, User, LogOut } from "lucide-react";
 import api from "@/axios";
+import { Context } from "./context.js";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -15,6 +17,7 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState([]);
   const [notifOpen, setNotifOpen] = useState(false);  
   const dropdownRef = useRef(null);
+  const userData = useContext(Context).userData;
 
   const fetchNotifications = async () => {
     try {
@@ -217,16 +220,20 @@ export default function Navbar() {
                   className="w-8 h-8 rounded-full bg-[#E8EEF5] border border-[#C8D3E0] flex items-center justify-center text-[#1F3A5F] shadow-sm cursor-pointer hover:shadow hover:bg-[#DCE3ED] transition-all"
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                 >
-                  <User size={16} />
+                  <img
+                    src={userData?.profilePic || "/default-profile.png"}
+                    alt="user"
+                    className={`w-6 h-6 rounded-full object-cover `}
+                  />
                 </div>
 
                 {profileMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white border border-[#DCE3ED] rounded-xl shadow-lg py-2 z-50 animate-fade-in origin-top-right">
                     <div className="px-4 py-3 border-b border-[#F0F4F8] mb-1">
                       <p className="text-sm font-bold text-[#1F3A5F] truncate">
-                        {portalType === 'student' ? 'Ada Lovelace' : portalType === 'faculty' ? 'Dr. Alan Turing' : 'Admin User'}
+                        { userData?.name || 'User' }
                       </p>
-                      <p className="text-xs text-[#5A6C7D] capitalize mt-0.5">{portalType} Portal</p>
+                      <p className="text-xs text-[#5A6C7D] capitalize mt-0.5">{userData?.data || 'N/A'}</p>
                     </div>
 
                     {portalType !== 'admin' && (

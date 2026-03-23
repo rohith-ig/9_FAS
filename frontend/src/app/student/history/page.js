@@ -121,11 +121,10 @@ export default function StudentHistoryPage() {
                                         setStatusFilter(status);
                                         setShowFilter(false);
                                     }}
-                                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#F4F7FB] ${
-                                        statusFilter === status
+                                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#F4F7FB] ${statusFilter === status
                                             ? "text-[#1F3A5F] font-medium"
                                             : "text-[#5A6C7D]"
-                                    }`}
+                                        }`}
                                 >
                                     {status}
                                 </button>
@@ -227,7 +226,7 @@ export default function StudentHistoryPage() {
                                         <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
                                             <Clock size={14} /> {apt.time} • {apt.type}
                                         </p>
-                                        
+
                                         {(apt.status === "Cancelled" || apt.status === "Rejected") && apt.cancellationNote && (
                                             <div className="mt-2.5 bg-rose-50 border border-rose-100 rounded-md p-2.5 max-w-sm">
                                                 <p className="text-xs font-bold text-rose-800 mb-0.5">Cancellation Note:</p>
@@ -242,13 +241,12 @@ export default function StudentHistoryPage() {
                                 <div className="flex items-center gap-3">
 
                                     <span
-                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                            apt.status === "Confirmed"
+                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${apt.status === "Confirmed"
                                                 ? "bg-emerald-100 text-emerald-700"
                                                 : apt.status === "Pending"
-                                                ? "bg-amber-100 text-amber-700"
-                                                : "bg-gray-100 text-gray-700"
-                                        }`}
+                                                    ? "bg-amber-100 text-amber-700"
+                                                    : "bg-gray-100 text-gray-700"
+                                            }`}
                                     >
                                         {apt.status}
                                     </span>
