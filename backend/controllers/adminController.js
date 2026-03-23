@@ -185,3 +185,42 @@ exports.uploadManualSlots = async (req, res) => {
     });
   }
 };
+
+exports.deleteManualSlots = async (req, res) => {
+  try {
+    const { faculty, slots } = req.body;
+
+    if (!faculty || !slots || slots.length === 0) {
+      return res.status(400).json({ message: "Faculty and slots are required" });
+    }
+
+    let deletedCount = 0;
+
+    for (let slot of slots) {
+      if (!slotMap[slot]) continue;
+
+      for (let [day, time] of slotMap[slot]) {
+        const result = await prisma.timetable.deleteMany({
+          where: {
+            facultyName: faculty,
+            day,
+            time
+          }
+        });
+
+        deletedCount += result.count;
+      }
+    }
+
+    res.json({
+      message: "Slots removed successfully",
+      deleted: deletedCount
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Delete failed"
+    });
+  }
+};
