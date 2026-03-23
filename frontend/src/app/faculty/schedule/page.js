@@ -149,6 +149,8 @@ export default function FacultyScheduleViewPage() {
   const [busyStart, setBusyStart] = useState("1:00 PM");
   const [busyEnd, setBusyEnd] = useState("5:00 PM");
   const [showBusyModal, setShowBusyModal] = useState(false);
+  const [selectedSlots, setSelectedSlots] = useState([]);
+const [editStatus, setEditStatus] = useState("");
 
   const [conflictList, setConflictList] = useState([]);
   const [availabilityByDate, setAvailabilityByDate] = useState(() => ({
@@ -184,6 +186,52 @@ export default function FacultyScheduleViewPage() {
   const availabilityForDay = availabilityByDate[selectedDateKey] ?? [];
   const draftSlotsBase = draftAvailabilityByDate[selectedDateKey] ?? availabilityForDay;
   const draftSlots = draftSlotsBase.filter((slot) => !isSlotBlocked(slot));
+
+  const slotMap = {
+  F:[["Mon","08:00-08:50"],["Tue","05:00-05:50"],["Thu","08:00-08:50"]],
+  H:[["Tue","08:00-08:50"],["Wed","05:00-05:50"],["Fri","08:00-08:50"]],
+  G:[["Wed","08:00-08:50"],["Mon","05:00-05:50"],["Thu","05:00-05:50"]],
+  A1:[["Mon","09:00-09:50"],["Thu","11:00-11:50"],["Fri","10:00-10:50"],["Wed","12:00-12:50"]],
+  A2:[["Mon","02:00-02:50"],["Thu","04:00-04:50"],["Fri","03:00-03:50"],["Wed","01:00-01:50"]],
+};
+
+const toggleEditSlot = (slot) => {
+  if (selectedSlots.includes(slot)) {
+    setSelectedSlots(selectedSlots.filter(s => s !== slot));
+  } else {
+    setSelectedSlots([...selectedSlots, slot]);
+  }
+};
+
+const handleAddSlots = async () => {
+  try {
+    const res = await api.post("/faculty/add-slots", {
+      slots: selectedSlots
+    });
+
+    setEditStatus("Slots added successfully");
+    setSelectedSlots([]);
+
+  } catch (err) {
+    console.error(err);
+    setEditStatus("Failed to add slots");
+  }
+};
+
+const handleDeleteSlots = async () => {
+  try {
+    const res = await api.delete("/faculty/delete-slots", {
+      data: { slots: selectedSlots }
+    });
+
+    setEditStatus("Slots removed successfully");
+    setSelectedSlots([]);
+
+  } catch (err) {
+    console.error(err);
+    setEditStatus("Failed to delete slots");
+  }
+};
 
   const toggleSlot = (slot) => {
     if (!canEditAvailability) return;
@@ -351,6 +399,17 @@ export default function FacultyScheduleViewPage() {
               >
                 Override & Busy
               </button>
+              <button
+  type="button"
+  onClick={() => setActiveTab("edit")}
+  className={`flex-1 rounded-lg px-5 text-sm font-semibold transition-all ${
+    activeTab === "edit"
+      ? "bg-white text-[#1F3A5F] shadow-sm"
+      : "text-[#5A6C7D] hover:text-[#1F3A5F]"
+  }`}
+>
+  Edit Slots
+</button>
             </div>
           </div>
         </header>
@@ -770,6 +829,60 @@ export default function FacultyScheduleViewPage() {
               </div>
             </article>
           )}
+          {activeTab === "edit" && (
+  <article className="lg:col-span-7 rounded-xl border border-[#DCE3ED] bg-white p-4 shadow-sm">
+
+    <h2 className="text-lg font-bold text-[#1F3A5F]">
+      Edit Your Slots
+    </h2>
+
+    <p className="text-sm text-[#5A6C7D] mt-1">
+      Select slots to add or remove from your timetable.
+    </p>
+
+    {/* SLOT BUTTONS */}
+    <div className="flex flex-wrap gap-3 mt-5">
+      {Object.keys(slotMap).map(slot => (
+        <button
+          key={slot}
+          onClick={() => toggleEditSlot(slot)}
+          className={`px-3 py-2 rounded-md border text-sm transition
+            ${selectedSlots.includes(slot)
+              ? "bg-[#2A4A75] text-white"
+              : "bg-white hover:bg-[#F2F6FC]"}
+          `}
+        >
+          {slot}
+        </button>
+      ))}
+    </div>
+
+    {/* ACTION BUTTONS */}
+    <div className="mt-6 flex gap-3">
+      <button
+        onClick={handleAddSlots}
+        className="px-6 py-2 bg-green-600 text-white rounded-lg"
+      >
+        Add Slots
+      </button>
+
+      <button
+        onClick={handleDeleteSlots}
+        className="px-6 py-2 bg-red-500 text-white rounded-lg"
+      >
+        Remove Slots
+      </button>
+    </div>
+
+    {/* STATUS */}
+    {editStatus && (
+      <div className="mt-3 text-sm text-green-600">
+        {editStatus}
+      </div>
+    )}
+
+  </article>
+)}
         </section>
       </section>
 
