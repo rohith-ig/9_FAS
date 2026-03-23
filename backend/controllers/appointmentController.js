@@ -5,72 +5,109 @@ const postAppointmentRequest = async (req, res) => {
         if (req.user.role !== 'STUDENT') {
             return res.status(403).json({ error: 'Only students can create appointment requests' });
         }
-        const { facultyId, start, duration, purpose, note, capacity = 1, isGroup = false } = req.body;
+        const { facultyId, start, duration, purpose, note, capacity = 1, isGroup = false, recurrenceRule, recurringEndDate } = req.body;
 
         if (!facultyId || !start || !duration || !purpose) {
             return res.status(400).json({ error: 'Missing required fields' });
         }   
-        const checkAvail = await prisma.facultyAvailability.findFirst({
-            where: {
-                facultyId: facultyId,
-                start: {
-                    lte: new Date(start)
-                },
-                end: {
-                    gte: new Date(new Date(start).getTime() + duration * 60000)
-                }
-            }
-        });
-        if (!checkAvail) {
-            return res.status(400).json({ error: 'The selected time slot is not available for the chosen faculty member' });
+        
+        const appointmentDates = [];
+        let currDate = new Date(start);
+        const endLimit = recurringEndDate ? new Date(recurringEndDate) : new Date(start);
+        if (recurringEndDate) {
+            endLimit.setHours(23, 59, 59, 999);
         }
-        const existingCheck = await prisma.appointmentRequest.findFirst({
-            where: {
-                facultyId: facultyId,
-                start : {
-                    lt : new Date(new Date(start).getTime() + duration * 60000)
-                },
-                end : {
-                    gt : new Date(start)
-                },
-                status: 'APPROVED'
-            }
-        });
-        if(existingCheck) {
-            return res.status(400).json({ error: 'The selected time slot overlaps with an already approved appointment' });
+
+        if (recurrenceRule && endLimit <= currDate) {
+            return res.status(400).json({ error: 'Recurring end date must be after the start date' });
         }
-        const findBusy = await prisma.busyblocks.findFirst({
-            where : {
-                facultyId : facultyId,
-                start : {
-                    lt : new Date(new Date(start).getTime() + duration * 60000)
-                },
-                end : {
-                    gt : new Date(start)
+        
+        do {
+           appointmentDates.push(new Date(currDate));
+           if (!recurrenceRule) break;
+           
+           if (recurrenceRule === 'DAILY') currDate.setDate(currDate.getDate() + 1);
+           else if (recurrenceRule === 'WEEKLY') currDate.setDate(currDate.getDate() + 7);
+           else if (recurrenceRule === 'BIWEEKLY') currDate.setDate(currDate.getDate() + 14);
+           else if (recurrenceRule === 'MONTHLY') currDate.setMonth(currDate.getMonth() + 1);
+           else break; 
+           
+        } while (currDate <= endLimit && appointmentDates.length <= 60);
+
+        const validInstances = [];
+        const recurrenceId = recurrenceRule ? Math.random().toString(36).substring(2, 15) : null;
+
+        for (const date of appointmentDates) {
+            const checkAvail = await prisma.facultyAvailability.findFirst({
+                where: {
+                    facultyId: facultyId,
+                    start: { lte: date },
+                    end: { gte: new Date(date.getTime() + duration * 60000) }
                 }
+            });
+            if (!checkAvail) {
+               // Require strict availability for the FIRST instance only.
+               if (date.getTime() === appointmentDates[0].getTime()) {
+                   return res.status(400).json({ error: 'The selected time slot is not available for the chosen faculty member' });
+               }
+               // Future instances gracefully bypass the lack of explicit `FacultyAvailability`
+               // as long as they don't hit the Existing/Busy blocks below!
             }
-        });
-        if(findBusy) {
-            return res.status(400).json({ error: 'The selected time slot overlaps with a busy block of the faculty member' });
-        }   
-        const create = await prisma.appointmentRequest.create({
-            data: {
+            
+            const existingCheck = await prisma.appointmentRequest.findFirst({
+                where: {
+                    facultyId: facultyId,
+                    start : { lt : new Date(date.getTime() + duration * 60000) },
+                    end : { gt : date },
+                    status: 'APPROVED'
+                }
+            });
+            if (existingCheck) {
+               if (appointmentDates.length > 1) continue;
+               else return res.status(400).json({ error: 'The selected time slot overlaps with an already approved appointment' });
+            }
+
+            const findBusy = await prisma.busyblocks.findFirst({
+                where : {
+                    facultyId : facultyId,
+                    start : { lt : new Date(date.getTime() + duration * 60000) },
+                    end : { gt : date }
+                }
+            });
+            if (findBusy) {
+               if (appointmentDates.length > 1) continue;
+               else return res.status(400).json({ error: 'The selected time slot overlaps with a busy block of the faculty member' });
+            }   
+
+            validInstances.push({
                 studentId: req.user.studentProfile.id,
                 facultyId: facultyId,
-                start: new Date(start),
-                end : new Date(new Date(start).getTime() + duration * 60000),
+                start: new Date(date),
+                end : new Date(date.getTime() + duration * 60000),
                 purpose: purpose,
                 note: note,
-                capacity: capacity
-            }
-        });
-        const addUserGroup = await prisma.appointmentUsers.create({
-            data: {
-                appointmentId: create.id,
-                userId: req.user.studentProfile.id
-            }
-        });
-        res.status(201).json(create);
+                capacity: capacity,
+                isGroup: isGroup,
+                recurrenceId: recurrenceId,
+                recurrenceRule: recurrenceRule
+            });
+        }
+        
+        if (validInstances.length === 0) {
+            return res.status(400).json({ error: 'No available slots found for the requested recurring timeline.' });
+        }
+
+        const creates = await prisma.$transaction(
+            validInstances.map(data => prisma.appointmentRequest.create({ data }))
+        );
+
+        await prisma.$transaction(
+            creates.map(c => prisma.appointmentUsers.create({
+                data: { appointmentId: c.id, userId: req.user.studentProfile.id }
+            }))
+        );
+
+        res.status(201).json(creates[0]);
     }
     catch (e) {
         console.log(e);
@@ -160,7 +197,7 @@ const getAppointments = async (req, res) => {
 const updateAppointmentStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, cancel } = req.body;
+        const { status, cancel, cancelSeries } = req.body;
         if (req.user.role !== 'FACULTY') {
             return res.status(403).json({ error: 'Only faculty members can update appointment status' });
         }
@@ -180,42 +217,66 @@ const updateAppointmentStatus = async (req, res) => {
             if (status !== 'CANCELLED') {
                 return res.status(400).json({error : 'This appointment is confirmed and can only be cancelled'});
             }
-            const update = await prisma.appointmentRequest.update({
-                where : {id : Number(id)},
-                data: {status : status, cancellationNote: cancel}
-            });
-            return res.json({success:update})
-        }
-        if (appointment.status === 'PENDING') {
-            if (status === 'APPROVED') {
-                const updateMain = await prisma.appointmentRequest.update({
-                    where : {id : Number(id)},
-                    data: {status : status}
+            if (cancelSeries && appointment.recurrenceId) {
+                const update = await prisma.appointmentRequest.updateMany({
+                    where : { recurrenceId: appointment.recurrenceId, status: 'APPROVED', start: { gte: appointment.start } },
+                    data: {status : status, cancellationNote: cancel}
                 });
-                const updateOthers = await prisma.appointmentRequest.updateMany({
-                    where : {
-                        facultyId : appointment.facultyId,
-                        status : "PENDING",
-                        start : {
-                            lt : appointment.end
-                        },
-                        end : {
-                            gt : appointment.start
-                        }
-                    },
-                    data : {
-                        status : "REJECTED",
-                        cancellationNote : "This appointment was automatically rejected because the time slot was taken by another approved appointment."
-                    }
-                });
-                return res.json(updateMain);
-            }
-            if (status === 'REJECTED') {
-                const updateMain = await prisma.appointmentRequest.update({
+                return res.json({success: update});
+            } else {
+                const update = await prisma.appointmentRequest.update({
                     where : {id : Number(id)},
                     data: {status : status, cancellationNote: cancel}
                 });
-                return res.json(updateMain);
+                return res.json({success:update})
+            }
+        }
+        if (appointment.status === 'PENDING') {
+            if (status === 'APPROVED' || status === 'REJECTED') {
+                if (appointment.recurrenceId) {
+                    const updateMany = await prisma.appointmentRequest.updateMany({
+                        where: { recurrenceId: appointment.recurrenceId, status: 'PENDING' },
+                        data: { status: status, cancellationNote: cancel }
+                    });
+                    
+                    if (status === 'APPROVED') {
+                        await prisma.appointmentRequest.updateMany({
+                            where: {
+                                facultyId: appointment.facultyId,
+                                status: "PENDING",
+                                start: { lt: appointment.end },
+                                end: { gt: appointment.start },
+                                id: { not: appointment.id }
+                            },
+                            data: {
+                                status: "REJECTED",
+                                cancellationNote: "This appointment was automatically rejected because the time slot was taken."
+                            }
+                        });
+                    }
+                    return res.json({ success: true, count: updateMany.count });
+                } else {
+                    const updateMain = await prisma.appointmentRequest.update({
+                        where: { id: Number(id) },
+                        data: { status: status, cancellationNote: cancel }
+                    });
+                    if (status === 'APPROVED') {
+                        await prisma.appointmentRequest.updateMany({
+                            where: {
+                                facultyId: appointment.facultyId,
+                                status: "PENDING",
+                                start: { lt: appointment.end },
+                                end: { gt: appointment.start },
+                                id: { not: appointment.id }
+                            },
+                            data: {
+                                status: "REJECTED",
+                                cancellationNote: "This appointment was automatically rejected because the time slot was taken."
+                            }
+                        });
+                    }
+                    return res.json(updateMain);
+                }
             }
             return res.status(400).json({ error: 'Invalid status transition' });
         }

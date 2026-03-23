@@ -10,6 +10,7 @@ export default function FacultyAppointmentDetail() {
     const router = useRouter();
 
     const [appointment, setAppointment] = useState(null);
+    const [seriesInfo, setSeriesInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [cancelNote, setCancelNote] = useState("");
@@ -20,8 +21,20 @@ export default function FacultyAppointmentDetail() {
             const found = response.data.find(a => String(a.id) === String(id));
             if (found) {
                 setAppointment(found);
+                
+                if (found.recurrenceId) {
+                    const series = response.data.filter(a => a.recurrenceId === found.recurrenceId);
+                    if (series.length > 0) {
+                        setSeriesInfo({
+                            rule: found.recurrenceRule,
+                            start: new Date(series[0].start),
+                            end: new Date(series[series.length - 1].start),
+                            total: series.length
+                        });
+                    }
+                }
             } else {
-                router.push('/faculty/list'); // Not found, redirect back
+                router.push('/faculty/list'); 
             }
         } catch (error) {
             console.error("Failed to fetch appointment:", error);
@@ -34,10 +47,10 @@ export default function FacultyAppointmentDetail() {
         fetchAppointmentDetails();
     }, [fetchAppointmentDetails]);
 
-    const handleStatusUpdate = async (status) => {
+    const handleStatusUpdate = async (status, cancelSeries = false) => {
         setUpdating(true);
         try {
-            const payload = { status };
+            const payload = { status, cancelSeries };
             if ((status === 'CANCELLED' || status === 'REJECTED') && cancelNote.trim() !== '') {
                 payload.cancel = cancelNote;
             }
@@ -139,6 +152,26 @@ export default function FacultyAppointmentDetail() {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {seriesInfo && (
+                                <div>
+                                    <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <CalendarClock size={14} /> Recurring Series
+                                    </h3>
+                                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex items-center gap-3 h-[72px]">
+                                        <div className="h-8 w-8 bg-white border border-indigo-200 rounded-full flex flex-shrink-0 items-center justify-center text-indigo-600">
+                                            <CalendarClock size={16} />
+                                        </div>
+                                        <div>
+                                            <p className="text-indigo-900 text-sm font-bold uppercase tracking-wide">
+                                                {seriesInfo.rule} ({seriesInfo.total} Instances)
+                                            </p>
+                                            <p className="text-[10px] text-indigo-700 font-semibold mt-0.5">
+                                                {seriesInfo.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric'})} - {seriesInfo.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             <div>
                                 <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                     <CalendarClock size={14} /> Timeslot Block
@@ -231,14 +264,33 @@ export default function FacultyAppointmentDetail() {
                                     className="w-full text-sm rounded-md border border-[#DCE3ED] p-3 text-[#1F3A5F] outline-none focus:border-[#4A6FA5] focus:ring-1 focus:ring-[#4A6FA5] resize-none h-[60px]"
                                 />
                             </div>
-                            <div className="flex flex-col sm:flex-row items-center gap-3 justify-end">
-                                <button
-                                    onClick={() => handleStatusUpdate('CANCELLED')}
-                                    disabled={updating}
-                                    className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 bg-white border border-[#DCE3ED] text-rose-600 hover:bg-rose-50 py-2.5 px-4 rounded-md text-sm font-semibold transition disabled:opacity-50"
-                                >
-                                    <CalendarOff size={16} /> Cancel Booking
-                                </button>
+                            <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 justify-end">
+                                {seriesInfo ? (
+                                    <>
+                                        <button
+                                            onClick={() => handleStatusUpdate('CANCELLED', false)}
+                                            disabled={updating}
+                                            className="w-full xl:w-auto flex-1 flex items-center justify-center gap-2 outline outline-1 outline-rose-200 text-rose-600 hover:bg-rose-50 py-2.5 px-4 rounded-md text-sm font-semibold transition disabled:opacity-50"
+                                        >
+                                            <CalendarOff size={16} /> Cancel This Only
+                                        </button>
+                                        <button
+                                            onClick={() => handleStatusUpdate('CANCELLED', true)}
+                                            disabled={updating}
+                                            className="w-full xl:w-auto flex-1 flex items-center justify-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 py-2.5 px-4 rounded-md text-sm font-semibold transition disabled:opacity-50"
+                                        >
+                                            <CalendarOff size={16} /> Cancel Entire Series
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        onClick={() => handleStatusUpdate('CANCELLED')}
+                                        disabled={updating}
+                                        className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 bg-white border border-[#DCE3ED] text-rose-600 hover:bg-rose-50 py-2.5 px-4 rounded-md text-sm font-semibold transition disabled:opacity-50"
+                                    >
+                                        <CalendarOff size={16} /> Cancel Booking
+                                    </button>
+                                )}
                                 <button
                                     onClick={handleReschedule}
                                     disabled={updating}

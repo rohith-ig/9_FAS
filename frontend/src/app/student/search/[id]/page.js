@@ -23,6 +23,8 @@ export default function BookAppointmentPage() {
   const [isGroupMeeting, setIsGroupMeeting] = useState(false);
   const [capacity, setCapacity] = useState(1);
   const [isRecurringMeeting, setIsRecurringMeeting] = useState(false);
+  const [recurrenceRule, setRecurrenceRule] = useState("WEEKLY");
+  const [recurringEndDate, setRecurringEndDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -82,7 +84,9 @@ export default function BookAppointmentPage() {
             purpose,
             note: fullNote || undefined,
             capacity: parseInt(capacity),
-            isGroup: isGroupMeeting
+            isGroup: isGroupMeeting,
+            recurrenceRule: isRecurringMeeting ? recurrenceRule : undefined,
+            recurringEndDate: isRecurringMeeting && recurringEndDate ? new Date(recurringEndDate).toISOString() : undefined
         };
         await api.post('/appmt', payload);
         setSuccess(true);
@@ -315,6 +319,36 @@ export default function BookAppointmentPage() {
                                        Recurring
                                    </label>
                                </div>
+                               
+                               {isRecurringMeeting && (
+                                 <div className="flex gap-4 mt-3 pt-3 border-t border-[#DCE3ED]">
+                                    <div className="flex-1">
+                                        <label className="block text-[10px] font-bold text-[#5A6C7D] mb-1 uppercase tracking-wider">Interval</label>
+                                        <select
+                                            value={recurrenceRule}
+                                            onChange={(e) => setRecurrenceRule(e.target.value)}
+                                            className="w-full rounded-md border border-[#DCE3ED] bg-[#FBFCFE] px-2 py-1.5 text-xs text-[#1F3A5F] outline-none font-bold"
+                                        >
+                                            <option value="DAILY">Daily</option>
+                                            <option value="WEEKLY">Weekly</option>
+                                            <option value="BIWEEKLY">Bi-Weekly</option>
+                                            <option value="MONTHLY">Monthly</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="block text-[10px] font-bold text-[#5A6C7D] mb-1 uppercase tracking-wider">End Date</label>
+                                        <input
+                                            type="date"
+                                            required={isRecurringMeeting}
+                                            value={recurringEndDate}
+                                            min={selectedSlot ? new Date(selectedSlot.start).toISOString().split('T')[0] : ""}
+                                            onChange={(e) => setRecurringEndDate(e.target.value)}
+                                            className="w-full rounded-md border border-[#DCE3ED] bg-[#FBFCFE] px-2 py-1.5 text-xs text-[#1F3A5F] outline-none font-bold"
+                                        />
+                                    </div>
+                                 </div>
+                               )}
+                               
                            </div>
                            
                            {isGroupMeeting && (

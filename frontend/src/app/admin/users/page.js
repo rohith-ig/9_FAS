@@ -475,140 +475,82 @@ const handleEditSubmit = async (e) => {
 
           {/* Table Card */}
           <div className="bg-white border border-[#E0E0E0] rounded-lg shadow-sm overflow-hidden">
-
             <table className="w-full text-sm">
-
               <thead className="bg-[#F7F9FC] border-b border-[#E0E0E0] text-[#2A4A75]">
                 <tr>
-
                   <th className="text-left p-4 font-medium">User</th>
-
-        {tab === "STUDENT" && (
-          <th className="text-left font-medium">Roll Number</th>
-        )}
-        
-
-        <th className="text-left font-medium">Email</th>
-
-        {tab === "STUDENT" && (
-          <th className="text-left font-medium">Program</th>
-        )}
-
-        {/* {tab === "STUDENT" && (
-          <th className="text-left font-medium">Department</th>
-        )} */}
-        <th className="text-left font-medium">Department</th>
-        <th className="text-center font-medium w-[90px]">Edit</th>
-        <th className="text-center font-medium w-[90px]">Delete</th>
-
-                  {tab === "STUDENT" && (
-                    <th className="text-left font-medium">Program</th>
-                  )}
-
-                  {tab === "STUDENT" && (
-                    <th className="text-left font-medium">Department</th>
-                  )}
-
-
+                  {tab === "STUDENT" && <th className="text-left font-medium">Roll Number</th>}
+                  <th className="text-left font-medium">Email</th>
+                  {tab === "STUDENT" && <th className="text-left font-medium">Program</th>}
+                  <th className="text-left font-medium">Department</th>
                   <th className="text-center font-medium w-[90px]">Edit</th>
                   <th className="text-center font-medium w-[90px]">Delete</th>
-
                 </tr>
               </thead>
-
-        {/* Name */}
-        <td className="p-4 flex items-center gap-2 text-[#1F3A5F]">
-            <User size={16} className="text-[#4A6FA5]" />
-            {user.name}
-        </td>
-
-        {/* Roll */}
-        {tab === "STUDENT" && (
-            <td className="text-[#2A4A75]">{user.studentProfile?.rollNumber}</td>
-        )}
-
-        {/* Email */}
-        <td className="text-[#2A4A75]">{user.email}</td>
-
-        {tab === "STUDENT" && (
-            <td className="text-[#2A4A75]">{user.studentProfile?.designation}</td>
-        )}
-
-        <td className="text-[#2A4A75]">
-          {user.studentProfile?.department || user.facultyProfile?.department}
-        </td>
-
-
-
-        {/* Edit */}
-        <td className="text-center">
-            <button
-            onClick={(e) => {
-                e.stopPropagation();
-                setEditingUser(user);
-            }}
-            className="p-2 rounded-md hover:bg-[#EEF3FA]"
-            >
-            <Pencil size={16} className="text-[#4A6FA5]" />
-            </button>
-        </td>
-
-        {/* Delete */}
-        <td className="text-center">
-            <button
-            onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(user.id);
-            }}
-            className="p-2 rounded-md hover:bg-[#FBEAEA]"
-            >
-            <Trash2 size={16} className="text-red-500" />
-            </button>
-        </td>
-
-        </tr>
-
-
-                      {/* Name */}
-                      <td className="p-4 flex items-center gap-2 text-[#1F3A5F]">
-                        <User size={16} className="text-[#4A6FA5]" />
-                        {user.name}
-                      </td>
-
-                      {/* Roll */}
-                      {tab === "STUDENT" && (
-                        <td className="text-[#2A4A75]">{user.studentProfile?.rollNumber}</td>
-                      )}
-
-                      {/* Email */}
-                      <td className="text-[#2A4A75]">{user.email}</td>
-
-                      {tab === "STUDENT" && (
-                        <td className="text-[#2A4A75]">{user.studentProfile?.designation}</td>
-                      )}
-
-                      {tab === "STUDENT" && (
-                        <td className="text-[#2A4A75]">
-                          {user.studentProfile?.department}
+              <tbody>
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={tab === "STUDENT" ? "7" : "5"} className="text-center p-6 text-[#5A6C7D]">
+                      No users found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <React.Fragment key={user.id}>
+                      <tr 
+                        className={`border-b border-[#E0E0E0] hover:bg-[#F3F6FA] transition cursor-pointer ${expandedId === user.id ? 'bg-[#EEF3FA]' : ''}`}
+                        onClick={() => setExpandedId(expandedId === user.id ? null : user.id)}
+                      >
+                        {/* Name */}
+                        <td className="p-4 flex items-center gap-2 text-[#1F3A5F]">
+                          <User size={16} className="text-[#4A6FA5]" />
+                          {user.name}
                         </td>
-                      )}
 
+                        {/* Roll */}
+                        {tab === "STUDENT" && (
+                          <td className="text-[#2A4A75] p-4">{user.studentProfile?.rollNumber || "-"}</td>
+                        )}
 
-                      {/* Edit */}
-                      <td className="text-center">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(user.id);
-                          }}
-                          className="p-2 rounded-md hover:bg-[#EEF3FA]"
-                        >
-                          <Pencil size={16} className="text-[#4A6FA5]" />
-                        </button>
-                      </td>
+                        {/* Email */}
+                        <td className="text-[#2A4A75] p-4">{user.email}</td>
 
+                        {/* Program */}
+                        {tab === "STUDENT" && (
+                          <td className="text-[#2A4A75] p-4">{user.studentProfile?.designation || "-"}</td>
+                        )}
 
-                    </tr>
+                        {/* Department */}
+                        <td className="text-[#2A4A75] p-4">
+                          {tab === "STUDENT" ? (user.studentProfile?.department || "-") : (user.facultyProfile?.department || "-")}
+                        </td>
+
+                        {/* Edit */}
+                        <td className="text-center p-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(user.id);
+                            }}
+                            className="p-2 rounded-md hover:bg-[#EEF3FA]"
+                          >
+                            <Pencil size={16} className="text-[#4A6FA5]" />
+                          </button>
+                        </td>
+
+                        {/* Delete */}
+                        <td className="text-center p-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(user.id);
+                            }}
+                            className="p-2 rounded-md hover:bg-[#FBEAEA]"
+                          >
+                            <Trash2 size={16} className="text-red-500" />
+                          </button>
+                        </td>
+                      </tr>
 
 
                     {/* EXPANDED DETAILS ROW */}
@@ -643,11 +585,8 @@ const handleEditSubmit = async (e) => {
 
                       </tr>
                     )}
-
                   </React.Fragment>
-
-                ))}
-
+                )))}
               </tbody>
 
 

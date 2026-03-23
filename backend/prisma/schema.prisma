@@ -17,7 +17,7 @@ model User {
   profilePic     String
   facultyProfile FacultyProfile?
   studentProfile StudentProfile?
-  tickets Ticket[]
+  tickets        Ticket[]
   notifications  Notification[]
 }
 
@@ -57,6 +57,8 @@ model AppointmentRequest {
   cancellationNote String?
   capacity         Int
   isGroup          Boolean            @default(false)
+  recurrenceId     String?            
+  recurrenceRule   String?            
   faculty          FacultyProfile     @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   student          StudentProfile     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   students         AppointmentUsers[]
@@ -119,20 +121,18 @@ enum Role {
   STUDENT
 }
 
-
 model Ticket {
-  id          Int      @id @default(autoincrement())
-  topic       String   // Matches: "Unable to book appointment" [1]
-  description String?   // add this (admin page needs it)
+  id          Int     @id @default(autoincrement())
+  topic       String // Matches: "Unable to book appointment" [1]
+  description String? // add this (admin page needs it)
 
-  ticketStatus     TSVAL   @default(OPEN) 
-  createdAt   DateTime @default(now())  // Matches the "date" field [1]
-  updatedAt   DateTime @updatedAt
+  ticketStatus TSVAL    @default(OPEN)
+  createdAt    DateTime @default(now()) // Matches the "date" field [1]
+  updatedAt    DateTime @updatedAt
 
-  userId      Int      
-  user        User     @relation(fields: [userId], references: [id])
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 }
-
 
 enum TSVAL {
   OPEN

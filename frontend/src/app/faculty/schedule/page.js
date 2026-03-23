@@ -301,7 +301,8 @@ export default function FacultyScheduleViewPage() {
             student: appmt.student?.user?.name || "Student",
             title: appmt.purpose,
             time: formatInterval(startDate, endDate),
-            status: appmt.status
+            status: appmt.status,
+            recurrenceRule: appmt.recurrenceRule
           };
         }).filter(a => a.status === 'APPROVED'); // only approved block slots normally 
 
@@ -445,18 +446,21 @@ export default function FacultyScheduleViewPage() {
 
               <div className="mt-4 rounded-md border border-[#DCE3ED] bg-[#FBFCFE] p-4">
                 <h3 className="text-sm font-semibold text-[#1F3A5F]">Appointments</h3>
-                {isBeyondWindow ? (
-                  <p className="mt-2 text-sm text-[#5A6C7D]">
-                    Outside 7-day window: appointment slots are not open yet.
-                  </p>
-                ) : appointmentsForDay.length === 0 ? (
+                {appointmentsForDay.length === 0 ? (
                   <p className="mt-2 text-sm text-[#5A6C7D]">No appointments for this day.</p>
                 ) : (
                   <div className="mt-2 space-y-2">
                     {appointmentsForDay.map((item) => (
                       <div key={item.id} className="rounded-md border border-[#DCE3ED] bg-white p-3 text-sm">
-                        <p className="font-semibold text-[#1F3A5F]">{item.title}</p>
-                        <p className="text-[#5A6C7D]">{item.time} · {item.student}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-[#1F3A5F]">{item.title}</p>
+                          {item.recurrenceRule && (
+                            <span className="inline-flex items-center rounded bg-[#EEF3FA] px-1.5 py-0.5 text-[10px] font-bold text-[#4A6FA5] uppercase tracking-wider border border-[#DCE3ED]">
+                              ⟳ {item.recurrenceRule}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[#5A6C7D] mt-1">{item.time} · {item.student}</p>
                       </div>
                     ))}
                   </div>
