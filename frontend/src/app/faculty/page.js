@@ -11,7 +11,7 @@ import {
 import api from "../../axios";
 import { useEffect, useState, useCallback, useContext } from "react";
 import { Context } from "../../components/context.js";
-import { Loader2 } from "lucide-react";const facultyAppointments = [
+import { Loader2 } from "lucide-react"; const facultyAppointments = [
     {
         id: 101,
         studentName: "Ada Lovelace",
@@ -77,7 +77,7 @@ export default function FacultyDashboard() {
             console.log('Fetched appointments:', response.data);
             console.log('Fetched user data:', userData.data);
             setFacultyAppointments(response.data);
-            setUserData({ name : userData.data.user.name, data : userData.data?.user.facultyProfile.designation, profilePic : userData.data?.user.profilePic });
+            setUserData({ name: userData.data.user.name, data: userData.data?.user.facultyProfile.designation, profilePic: userData.data?.user.profilePic });
         } catch (error) {
             console.error('Error fetching faculty appointments:', error);
         } finally {
@@ -111,11 +111,12 @@ export default function FacultyDashboard() {
         return grouped;
     };
 
-    const pendingRequests = groupAppointments([...facultyAppointments]
-        .filter(apt => apt.status === 'PENDING')
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || b.id - a.id))
-        .slice(0, 4);
+    const allPendingGrouped = groupAppointments([...facultyAppointments].filter(apt => apt.status === 'PENDING'));
     
+    const pendingRequests = [...allPendingGrouped]
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || b.id - a.id)
+        .slice(0, 4);
+
     const handleStatusUpdate = async (id, status) => {
         try {
             await api.post(`/appmt/update/${id}`, { status });
@@ -170,7 +171,7 @@ export default function FacultyDashboard() {
                             <div className="p-3 bg-amber-100 text-amber-700 rounded-lg">
                                 <Clock size={28} />
                             </div>
-                            <span className="text-4xl font-bold text-[#1F3A5F]">{facultyAppointments.filter(apt => apt.status === 'PENDING').length}</span>
+                            <span className="text-4xl font-bold text-[#1F3A5F]">{allPendingGrouped.length}</span>
                         </div>
                     </div>
                     <div className="rounded-xl border border-[#DCE3ED] bg-white p-5 shadow-sm">
@@ -205,13 +206,8 @@ export default function FacultyDashboard() {
                                                 </div>
                                                 <div>
                                                     <h4 className="font-semibold text-[#1F3A5F] text-lg">{apt.students[0].student.user.name} <span className="text-sm font-normal text-[#5A6C7D]">({apt.students[0].student.rollNumber})</span></h4>
-                                                    <p className="text-sm text-[#5A6C7D] flex flex-wrap items-center gap-2 mt-1">
-                                                        <span className="flex items-center gap-1"><Clock size={14} /> {new Date(apt.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {apt.purpose}</span>
-                                                        {apt.isGroupedSeries && (
-                                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-1 ml-1">
-                                                                ⟳ {apt.recurrenceRule} ({apt.seriesCount}x)
-                                                            </span>
-                                                        )}
+                                                    <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
+                                                        <Clock size={14} /> {new Date(apt.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {apt.purpose}
                                                     </p>
                                                 </div>
                                             </div>

@@ -1,4 +1,12 @@
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 const prisma = require('../config/database.js');
+
+const sendEmail = require('../utils/mailer');
+
+const appointmentRequestTemplate = require('../emails/appointmentRequest');
+const appointmentApprovedTemplate = require('../emails/appointmentApproved');
+const appointmentRejectedTemplate = require('../emails/appointmentRejected');
 
 const postAppointmentRequest = async (req, res) => {
     try {
@@ -46,12 +54,9 @@ const postAppointmentRequest = async (req, res) => {
                 }
             });
             if (!checkAvail) {
-               // Require strict availability for the FIRST instance only.
                if (date.getTime() === appointmentDates[0].getTime()) {
                    return res.status(400).json({ error: 'The selected time slot is not available for the chosen faculty member' });
                }
-               // Future instances gracefully bypass the lack of explicit `FacultyAvailability`
-               // as long as they don't hit the Existing/Busy blocks below!
             }
             
             const existingCheck = await prisma.appointmentRequest.findFirst({
@@ -101,6 +106,28 @@ const postAppointmentRequest = async (req, res) => {
             validInstances.map(data => prisma.appointmentRequest.create({ data }))
         );
 
+
+        const faculty = await prisma.facultyProfile.findUnique({
+            where: { id: facultyId },
+            include: { user: true }
+        });
+
+        const student = await prisma.studentProfile.findUnique({
+            where: { id: req.user.studentProfile.id },
+            include: { user: true }
+        });
+
+        sendEmail({
+            to: faculty.user.email,
+            subject: 'New Appointment Request',
+            html: appointmentRequestTemplate({
+                student: student.user,
+                purpose,
+                start,
+                duration,
+                note
+            })
+        }).catch(console.error);
         await prisma.$transaction(
             creates.map(c => prisma.appointmentUsers.create({
                 data: { appointmentId: c.id, userId: req.user.studentProfile.id }
