@@ -54,12 +54,9 @@ const postAppointmentRequest = async (req, res) => {
                 }
             });
             if (!checkAvail) {
-               // Require strict availability for the FIRST instance only.
                if (date.getTime() === appointmentDates[0].getTime()) {
                    return res.status(400).json({ error: 'The selected time slot is not available for the chosen faculty member' });
                }
-               // Future instances gracefully bypass the lack of explicit `FacultyAvailability`
-               // as long as they don't hit the Existing/Busy blocks below!
             }
             
             const existingCheck = await prisma.appointmentRequest.findFirst({

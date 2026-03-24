@@ -14,7 +14,6 @@ export default function SearchFaculty() {
     try {
       setLoading(true);
       const response = await api.get('/users/faculty');
-      console.log("Fetched faculties:", response.data);
       setFaculties(response.data);
     } catch (error) {
       console.error("Failed to fetch faculties:", error);
@@ -29,6 +28,7 @@ export default function SearchFaculty() {
 
   const filteredFaculty = faculties.filter((f) => {
     const value = searchMode === "name" ? f.user.name : f.designation;
+    console.log(value)
     return value?.toLowerCase().includes(searchText.toLowerCase());
   });
 
@@ -89,7 +89,7 @@ export default function SearchFaculty() {
               No available faculty found for this search.
             </p>
           ) : (
-            filteredFaculty.map((faculty) => <FacultyCard key={faculty.id} {...faculty} />)
+            filteredFaculty.map((faculty) => <FacultyCard key={faculty.id} {...faculty} name={faculty.user.name} />)
           )}
         </section>
       </section>
