@@ -2,6 +2,12 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 const prisma = require('../config/database.js');
 
+const sendEmail = require('../utils/mailer');
+
+const appointmentRequestTemplate = require('../emails/appointmentRequest');
+const appointmentApprovedTemplate = require('../emails/appointmentApproved');
+const appointmentRejectedTemplate = require('../emails/appointmentRejected');
+
 const postAppointmentRequest = async (req, res) => {
     try {
         if (req.user.role !== 'STUDENT') {
@@ -103,38 +109,28 @@ const postAppointmentRequest = async (req, res) => {
             validInstances.map(data => prisma.appointmentRequest.create({ data }))
         );
 
-const faculty = await prisma.facultyProfile.findUnique({
-    where: { id: facultyId },
-    include: { user: true }
-});
 
-const student = await prisma.studentProfile.findUnique({
-    where: { id: req.user.studentProfile.id },
-    include: { user: true }
-});
+        const faculty = await prisma.facultyProfile.findUnique({
+            where: { id: facultyId },
+            include: { user: true }
+        });
 
-console.log("Sending email to:", faculty?.user?.email);
+        const student = await prisma.studentProfile.findUnique({
+            where: { id: req.user.studentProfile.id },
+            include: { user: true }
+        });
 
-try {
-    await resend.emails.send({
-        to: faculty.user.email,
-        subject: 'New Appointment Request',
-        html: `
-            <h2>New Appointment Request</h2>
-            <p><strong>Student:</strong> ${student.user.name}</p>
-            <p><strong>Email:</strong> ${student.user.email}</p>
-            <p><strong>Purpose:</strong> ${purpose}</p>
-            <p><strong>Start Time:</strong> ${new Date(start).toLocaleString()}</p>
-            <p><strong>Duration:</strong> ${duration} minutes</p>
-            <p><strong>Note:</strong> ${note || 'N/A'}</p>
-            <p>Please login to your dashboard to approve/reject.</p>
-        `
-    });
-
-    console.log("Email sent successfully");
-} catch (err) {
-    console.error("Email failed:", err);
-}
+        sendEmail({
+            to: faculty.user.email,
+            subject: 'New Appointment Request',
+            html: appointmentRequestTemplate({
+                student: student.user,
+                purpose,
+                start,
+                duration,
+                note
+            })
+        }).catch(console.error);
         await prisma.$transaction(
             creates.map(c => prisma.appointmentUsers.create({
                 data: { appointmentId: c.id, userId: req.user.studentProfile.id }
