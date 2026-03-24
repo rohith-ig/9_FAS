@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const headingColor = "text-[#2A4A75]";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const days = ["Mon","Tue","Wed","Thu","Fri"];
 
