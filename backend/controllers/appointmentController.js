@@ -510,10 +510,16 @@ const rescheduleAppointment = async (req, res) => {
             return res.status(400).json({ error: 'Only approved appointments can be rescheduled' });
         }
 
+        // ── FIX: compute real duration instead of defaulting to 30 min ──
+        const duration =
+            (new Date(appointment.end) - new Date(appointment.start)) / 60000;
+
         const slot = await findNextAvailableSlot(
             appointment.facultyId,
-            appointment.end
+            appointment.end,
+            duration
         );
+        // ────────────────────────────────────────────────────────────────
 
         if (!slot) {
             return res.status(400).json({ error: "No available slot found" });
@@ -550,10 +556,16 @@ const getNextSlot = async (req, res) => {
             return res.status(404).json({ error: "Appointment not found" });
         }
 
+        // FIX: compute real duration instead of defaulting to 30 min 
+        const duration =
+            (new Date(appointment.end) - new Date(appointment.start)) / 60000;
+
         const slot = await findNextAvailableSlot(
             appointment.facultyId,
-            appointment.end
+            appointment.end,
+            duration
         );
+        // 
 
         if (!slot) {
             return res.status(400).json({ error: "No available slot found" });
