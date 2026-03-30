@@ -437,11 +437,143 @@ const bulkCancel = async (req, res) => {
     }
 }
 
+const findNextAvailableSlot = async (facultyId, afterTime, duration = 30) => {
+    let currentTime = new Date(afterTime);
+
+    for (let i = 0; i < 100; i++) {
+
+        const newStart = new Date(currentTime);
+        const newEnd = new Date(newStart.getTime() + duration * 60000);
+
+        // availability
+        const checkAvail = await prisma.facultyAvailability.findFirst({
+            where: {
+                facultyId,
+                start: { lte: newStart },
+                end: { gte: newEnd }
+            }
+        });
+
+        if (checkAvail) {
+            // conflict
+            const conflict = await prisma.appointmentRequest.findFirst({
+                where: {
+                    facultyId,
+                    start: { lt: newEnd },
+                    end: { gt: newStart },
+                    status: 'APPROVED'
+                }
+            });
+
+            // busyblock 
+            const busy = await prisma.busyblocks.findFirst({
+                where: {
+                    facultyId,
+                    start: { lt: newEnd },
+                    end: { gt: newStart }
+                }
+            });
+
+            if (!conflict && !busy) {
+                return { start: newStart, end: newEnd };
+            }
+        }
+
+        currentTime = new Date(currentTime.getTime() + 30 * 60000);
+    }
+
+    return null;
+};
+
+const rescheduleAppointment = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (req.user.role !== 'FACULTY') {
+            return res.status(403).json({ error: 'Only faculty can reschedule' });
+        }
+
+        const appointment = await prisma.appointmentRequest.findUnique({
+            where: { id: Number(id) },
+            include: {
+                student: {
+                    include: { user: true }
+                }
+            }
+        });
+
+        if (!appointment || appointment.facultyId !== req.user.facultyProfile.id) {
+            return res.status(404).json({ error: 'Appointment not found' });
+        }
+
+        if (appointment.status !== 'APPROVED') {
+            return res.status(400).json({ error: 'Only approved appointments can be rescheduled' });
+        }
+
+        const slot = await findNextAvailableSlot(
+            appointment.facultyId,
+            appointment.end
+        );
+
+        if (!slot) {
+            return res.status(400).json({ error: "No available slot found" });
+        }
+
+        const updated = await prisma.appointmentRequest.update({
+            where: { id: Number(id) },
+            data: {
+                start: slot.start,
+                end: slot.end
+            }
+        });
+
+        // (optional: add email later)
+        // sendEmail...
+
+        res.json(updated);
+
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+const getNextSlot = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const appointment = await prisma.appointmentRequest.findUnique({
+            where: { id: Number(id) }
+        });
+
+        if (!appointment) {
+            return res.status(404).json({ error: "Appointment not found" });
+        }
+
+        const slot = await findNextAvailableSlot(
+            appointment.facultyId,
+            appointment.end
+        );
+
+        if (!slot) {
+            return res.status(400).json({ error: "No available slot found" });
+        }
+
+        res.json(slot);
+
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 module.exports = {
     postAppointmentRequest,
     getAppointments,
     updateAppointmentStatus,
     addGroupMember,
     getAppointmentByTime,
-    bulkCancel
+    bulkCancel,
+    getNextSlot,
+    rescheduleAppointment
 };
