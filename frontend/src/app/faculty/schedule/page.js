@@ -150,7 +150,7 @@ export default function FacultyScheduleViewPage() {
   const [busyEnd, setBusyEnd] = useState("5:00 PM");
   const [showBusyModal, setShowBusyModal] = useState(false);
   const [selectedSlots, setSelectedSlots] = useState([]);
-const [editStatus, setEditStatus] = useState("");
+  const [editStatus, setEditStatus] = useState("");
 
   const [conflictList, setConflictList] = useState([]);
   const [availabilityByDate, setAvailabilityByDate] = useState(() => ({
@@ -162,7 +162,11 @@ const [editStatus, setEditStatus] = useState("");
 
   const [appointments, setAppointments] = useState([]);
 
-
+  // STEP 1: Reschedule modal state
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [suggestedSlot, setSuggestedSlot] = useState(null);
+  // 
   const selectedDate = fromDateKey(selectedDateKey);
   const selectedWeekday = new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(selectedDate);
   const monthCells = useMemo(() => buildMonthCells(visibleMonth), [visibleMonth]);
@@ -232,6 +236,55 @@ const handleDeleteSlots = async () => {
     setEditStatus("Failed to delete slots");
   }
 };
+
+  // STEP 2: Fetch suggested slot and open modal 
+  const handleRescheduleClick = async (appointment) => {
+    try {
+      const realId = appointment.id.split("-")[1];
+
+      const res = await api.get(`/appmt/nextSlot/${realId}`);
+
+      setSelectedAppointment(appointment);
+      setSuggestedSlot(res.data);
+      setShowRescheduleModal(true);
+
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Failed to fetch slot");
+    }
+  };
+  //
+
+  // STEP 3: Confirm reschedule 
+  const handleConfirmReschedule = async () => {
+    try {
+      const realId = selectedAppointment.id.split("-")[1];
+
+      await api.post(`/appmt/reschedule/${realId}`);
+
+      toast.success("Rescheduled successfully");
+
+      setAppointments(prev =>
+        prev.map(app =>
+          app.id === selectedAppointment.id
+            ? {
+                ...app,
+                time: `${new Date(suggestedSlot.start).toLocaleTimeString()} - ${new Date(suggestedSlot.end).toLocaleTimeString()}`
+              }
+            : app
+        )
+      );
+
+      setShowRescheduleModal(false);
+      setSelectedAppointment(null);
+      setSuggestedSlot(null);
+
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Reschedule failed");
+    }
+  };
+  // 
 
   const toggleSlot = (slot) => {
     if (!canEditAvailability) return;
@@ -352,7 +405,7 @@ const handleDeleteSlots = async () => {
             status: appmt.status,
             recurrenceRule: appmt.recurrenceRule
           };
-        }).filter(a => a.status === 'APPROVED'); // only approved block slots normally 
+        }).filter(a => a.status === 'APPROVED');
 
         setAppointments(fetchedAppmts);
 
@@ -400,16 +453,16 @@ const handleDeleteSlots = async () => {
                 Override & Busy
               </button>
               <button
-  type="button"
-  onClick={() => setActiveTab("edit")}
-  className={`flex-1 rounded-lg px-5 text-sm font-semibold transition-all ${
-    activeTab === "edit"
-      ? "bg-white text-[#1F3A5F] shadow-sm"
-      : "text-[#5A6C7D] hover:text-[#1F3A5F]"
-  }`}
->
-  Edit Slots
-</button>
+                type="button"
+                onClick={() => setActiveTab("edit")}
+                className={`flex-1 rounded-lg px-5 text-sm font-semibold transition-all ${
+                  activeTab === "edit"
+                    ? "bg-white text-[#1F3A5F] shadow-sm"
+                    : "text-[#5A6C7D] hover:text-[#1F3A5F]"
+                }`}
+              >
+                Edit Slots
+              </button>
             </div>
           </div>
         </header>
@@ -520,6 +573,15 @@ const handleDeleteSlots = async () => {
                           )}
                         </div>
                         <p className="text-[#5A6C7D] mt-1">{item.time} · {item.student}</p>
+                        {/* STEP 4: Reschedule button - only for APPROVED appointments */}
+                        {item.status === "APPROVED" && (
+                          <button
+                            onClick={() => handleRescheduleClick(item)}
+                            className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded"
+                          >
+                            Reschedule
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1007,6 +1069,46 @@ const handleDeleteSlots = async () => {
           </div>
         </div>
       )}
+
+      {/* STEP 5: Reschedule Confirmation Modal */}
+      {showRescheduleModal && suggestedSlot && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+
+            <h2 className="text-lg font-bold mb-3">Confirm Reschedule</h2>
+
+            <p className="text-sm">
+              Suggested slot:
+              <br />
+              <b>
+                {new Date(suggestedSlot.start).toLocaleString()} -{" "}
+                {new Date(suggestedSlot.end).toLocaleTimeString()}
+              </b>
+            </p>
+
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={handleConfirmReschedule}
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                Confirm
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowRescheduleModal(false);
+                  setSuggestedSlot(null);
+                }}
+                className="bg-gray-300 px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+      {/*  */}
     </main>
   );
 }
