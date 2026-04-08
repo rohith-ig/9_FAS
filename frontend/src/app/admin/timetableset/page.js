@@ -1,9 +1,8 @@
 "use client";
 import { useState } from "react";
+import api from "../../../axios";
 
 const headingColor = "text-[#2A4A75]";
-
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const days = ["Mon","Tue","Wed","Thu","Fri"];
 
@@ -63,17 +62,8 @@ const handleCSVUpload = (e) => {
 
 const uploadCSVData = async (data) => {
   try {
-    const res = await fetch(`${API_BASE}/api/admin/upload-csv`,{
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ data })
-    });
-
-    const result = await res.json();
-    setUploadStatus(result.message);
-
+    const res = await api.post("/admin/upload-csv", { data });
+    setUploadStatus(res.data.message);
   } catch (err) {
     console.error(err);
     setUploadStatus("Upload failed");
@@ -85,24 +75,14 @@ const handleManualUpload = async () => {
   if (!selectedFaculty || selectedSlots.length === 0) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/upload-slots`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        faculty: selectedFaculty,
-        slots: selectedSlots
-      })
+    const res = await api.post("/admin/upload-slots", {
+      faculty: selectedFaculty,
+      slots: selectedSlots
     });
 
-    const result = await res.json();
-
-    if (res.ok) {
-      setManualUploadStatus("Upload successful!"); // ✅ This triggers UI update
-      setSelectedSlots([]); // clear slots
-      setSelectedFaculty(null); // optional
-    } else {
-      setManualUploadStatus(result.message || "Upload failed");
-    }
+    setManualUploadStatus("Upload successful!");
+    setSelectedSlots([]);
+    setSelectedFaculty(null);
   } catch (err) {
     console.error(err);
     setManualUploadStatus("Upload failed");
@@ -113,23 +93,13 @@ const handleRemoveSlots = async () => {
   if (!selectedFaculty || selectedSlots.length === 0) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/delete-slots`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        faculty: selectedFaculty,
-        slots: selectedSlots
-      })
+    const res = await api.post("/admin/delete-slots", {
+      faculty: selectedFaculty,
+      slots: selectedSlots
     });
 
-    const result = await res.json();
-
-    if (res.ok) {
-      setManualUploadStatus("Slots removed successfully!");
-      setSelectedSlots([]);
-    } else {
-      setManualUploadStatus(result.message || "Delete failed");
-    }
+    setManualUploadStatus("Slots removed successfully!");
+    setSelectedSlots([]);
   } catch (err) {
     console.error(err);
     setManualUploadStatus("Delete failed");
