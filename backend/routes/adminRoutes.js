@@ -27,6 +27,6 @@ router.post("/upload-csv", uploadCSVTimetable);
 router.post("/upload-slots", uploadManualSlots);
 
 //manual delete slot
-router.delete("/delete-slots", deleteManualSlots);
+router.post("/delete-slots", deleteManualSlots);
 
 module.exports = router;

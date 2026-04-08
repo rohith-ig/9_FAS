@@ -1,5 +1,9 @@
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend = null;
+
+if (process.env.RESEND_API_KEY) {
+  const { Resend } = require("resend");
+  resend = new Resend(process.env.RESEND_API_KEY);
+}
 const prisma = require('../config/database.js');
 
 const sendEmail = require('../utils/mailer');

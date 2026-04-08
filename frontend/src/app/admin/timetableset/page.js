@@ -1,11 +1,15 @@
 "use client";
 import { useState } from "react";
+import api from "../../../axios";
 
 const headingColor = "text-[#2A4A75]";
 
+<<<<<<< HEAD
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 import api from "../../axios";
 
+=======
+>>>>>>> 50241d0 (fixed bug with using axios instead of fetch)
 const days = ["Mon","Tue","Wed","Thu","Fri"];
 
 const times = [
@@ -64,7 +68,7 @@ const handleCSVUpload = (e) => {
 
 const uploadCSVData = async (data) => {
   try {
-    const res = await api.post("/api/admin/upload-csv", { data });
+    const res = await api.post("/admin/upload-csv", { data });
     setUploadStatus(res.data.message);
   } catch (err) {
     console.error(err);
@@ -77,39 +81,31 @@ const handleManualUpload = async () => {
   if (!selectedFaculty || selectedSlots.length === 0) return;
 
   try {
-    const res = await api.post("/api/admin/upload-slots", {
+    const res = await api.post("/admin/upload-slots", {
       faculty: selectedFaculty,
-      slots: selectedSlots,
+      slots: selectedSlots
     });
 
-    if (res.status === 200) {
-      setManualUploadStatus("Upload successful!");
-      setSelectedSlots([]);
-      setSelectedFaculty(null);
-    } else {
-      setManualUploadStatus(res.data.message || "Upload failed");
-    }
+    setManualUploadStatus("Upload successful!");
+    setSelectedSlots([]);
+    setSelectedFaculty(null);
   } catch (err) {
     console.error(err);
     setManualUploadStatus("Upload failed");
   }
 };
 
-/* ================= MANUAL SLOT REMOVE ================= */
 const handleRemoveSlots = async () => {
   if (!selectedFaculty || selectedSlots.length === 0) return;
 
   try {
-    const res = await api.delete("/api/admin/delete-slots", {
-      data: { faculty: selectedFaculty, slots: selectedSlots },
+    const res = await api.post("/admin/delete-slots", {
+      faculty: selectedFaculty,
+      slots: selectedSlots
     });
 
-    if (res.status === 200) {
-      setManualUploadStatus("Slots removed successfully!");
-      setSelectedSlots([]);
-    } else {
-      setManualUploadStatus(res.data.message || "Delete failed");
-    }
+    setManualUploadStatus("Slots removed successfully!");
+    setSelectedSlots([]);
   } catch (err) {
     console.error(err);
     setManualUploadStatus("Delete failed");
