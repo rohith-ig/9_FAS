@@ -369,6 +369,57 @@ const addGroupMember = async (req,res) => {
     } 
 }
 
+const requestReschedule = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (req.user.role !== 'FACULTY') {
+            return res.status(403).json({ error: 'Only faculty members can request appointment rescheduling' });
+        }
+        const appointment = await prisma.appointmentRequest.findUnique({
+            where: { id: Number(id) },
+        });
+        if (!appointment || appointment.facultyId !== req.user.facultyProfile.id) {
+            return res.status(404).json({ error: 'Appointment request not found' });
+        }
+        if (appointment.status === 'CANCELLED' || appointment.status === 'REJECTED') {
+            return res.status(400).json({ error: 'Cannot reschedule a cancelled or rejected appointment' });
+        }
+        
+        const update = await prisma.appointmentRequest.update({
+            where: { id: Number(id) },
+            data: { rescheduleRequested: true, status: 'PENDING' }
+        });
+        
+        res.json({ success: true, update });
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
+
+const studentCancelAppointment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (req.user.role !== 'STUDENT') {
+            return res.status(403).json({ error: 'Only students can cancel' });
+        }
+        const appmt = await prisma.appointmentRequest.findUnique({
+            where: { id: Number(id) }
+        });
+        if (!appmt || appmt.studentId !== req.user.studentProfile.id) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        const update = await prisma.appointmentRequest.update({
+            where: { id: Number(id) },
+            data: { status: 'CANCELLED', cancellationNote: "Cancelled by student" }
+        });
+        res.json({ success: true, update });
+    } catch(e) {
+        console.log(e);
+        res.status(500).json({error: "Server Error"});
+    }
+}
+
 const getAppointmentByTime = async (req, res) => {
     try {
         const { start , end } = req.body;
@@ -584,6 +635,8 @@ module.exports = {
     getAppointments,
     updateAppointmentStatus,
     addGroupMember,
+    requestReschedule,
+    studentCancelAppointment,
     getAppointmentByTime,
     bulkCancel,
     getNextSlot,

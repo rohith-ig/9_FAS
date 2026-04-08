@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import api from "../../../../axios";
 import { Loader2, ArrowLeft, CalendarClock, Clock, User, Check, X, CalendarOff, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function FacultyAppointmentDetail() {
     const { id } = useParams();
@@ -84,8 +85,23 @@ export default function FacultyAppointmentDetail() {
     const timeString = `${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     const duration = (endDate - startDate) / 60000;
 
+  const handleRescheduleNotification = async () => {
+    setUpdating(true);
+    try {
+      await api.post(`/appmt/requestReschedule/${id}`);
+      toast.success("Reschedule request sent successfully.");
+      await fetchAppointmentDetails();
+    } catch (error) {
+      console.error("Failed to request reschedule:", error);
+      toast.error("Failed to request reschedule.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
     return (
         <div className="mx-auto w-full max-w-3xl px-4 py-8 h-[calc(100vh-64px)] flex flex-col font-sans">
+            <Toaster position="top-center" />
 
             <Link href="/faculty/list" className="inline-flex items-center gap-2 text-sm font-semibold text-[#4A6FA5] hover:text-[#1F3A5F] transition mb-4 w-fit">
                 <ArrowLeft size={16} /> Back to Scheduler
@@ -236,14 +252,21 @@ export default function FacultyAppointmentDetail() {
                                 <button
                                     onClick={() => handleStatusUpdate('REJECTED')}
                                     disabled={updating}
-                                    className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 bg-white border border-[#DCE3ED] text-rose-600 hover:bg-rose-50 py-2.5 px-4 rounded-md text-sm font-semibold transition disabled:opacity-50"
+                                    className="w-full sm:w-auto flex-[0.7] flex items-center justify-center gap-2 bg-white border border-[#DCE3ED] text-rose-600 hover:bg-rose-50 py-2.5 px-4 rounded-md text-sm font-semibold transition disabled:opacity-50"
                                 >
-                                    <X size={16} /> Decline Request
+                                    <X size={16} /> Decline
+                                </button>
+                                <button 
+                                    onClick={handleRescheduleNotification}
+                                    disabled={updating || appointment.rescheduleRequested}
+                                    className={`w-full sm:w-auto flex-1 flex items-center justify-center gap-2 text-white py-2.5 px-4 rounded-md text-sm font-semibold transition disabled:opacity-50 ${appointment.rescheduleRequested ? 'bg-[#5A6C7D] cursor-not-allowed' : 'bg-[#4A6FA5] hover:bg-[#3f5e8a]'}`}
+                                >
+                                    <Clock size={16} /> {appointment.rescheduleRequested ? 'Reschedule Requested' : 'Request Reschedule'}
                                 </button>
                                 <button
                                     onClick={() => handleStatusUpdate('APPROVED')}
                                     disabled={updating}
-                                    className="w-full sm:w-auto flex-[2] flex items-center justify-center gap-2 bg-[#4A6FA5] hover:bg-[#3f5e8a] text-white py-2.5 px-6 rounded-md text-sm font-semibold transition disabled:opacity-50"
+                                    className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 bg-[#1F3A5F] hover:bg-[#2A4A75] text-white py-2.5 px-6 rounded-md text-sm font-semibold transition disabled:opacity-50"
                                 >
                                     <Check size={16} /> Approve
                                 </button>
@@ -292,11 +315,11 @@ export default function FacultyAppointmentDetail() {
                                     </button>
                                 )}
                                 <button
-                                    onClick={handleReschedule}
-                                    disabled={updating}
-                                    className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 bg-[#1F3A5F] hover:bg-[#2A4A75] text-white py-2.5 px-6 rounded-md text-sm font-semibold transition disabled:opacity-50"
+                                    onClick={handleRescheduleNotification}
+                                    disabled={updating || appointment.rescheduleRequested}
+                                    className={`w-full sm:w-auto flex-1 flex items-center justify-center gap-2 text-white py-2.5 px-6 rounded-md text-sm font-semibold transition disabled:opacity-50 ${appointment.rescheduleRequested ? 'bg-[#5A6C7D] cursor-not-allowed' : 'bg-[#1F3A5F] hover:bg-[#2A4A75]'}`}
                                 >
-                                    <Clock size={16} /> Request Reschedule
+                                    <Clock size={16} /> {appointment.rescheduleRequested ? 'Reschedule Requested' : 'Request Reschedule'}
                                 </button>
                             </div>
                         </div>

@@ -3,7 +3,7 @@ const router = express.Router();
 const ticketController = require("../controllers/ticketController");
 const {check} = require("../middlewares/roleCheck")
 
-// Student
+// Student or Faculty
 router.post("/create-ticket", check, ticketController.createTicket);
 router.get("/my-tickets", check, ticketController.getMyTickets);
 
