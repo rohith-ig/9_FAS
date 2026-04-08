@@ -140,6 +140,17 @@ enum TSVAL {
   RESOLVED
 }
 
+model Notification {
+  id        String   @id @default(uuid())
+  userId    Int
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  link      String?
+  user User @relation(fields: [userId], references: [id])
+}
+
 model BackupLog {
   id        Int      @id @default(autoincrement())
   status    String   @default("SUCCESS") // Can be "SUCCESS" or "FAILED"
