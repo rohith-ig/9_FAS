@@ -4,6 +4,7 @@ import { Calendar, User, Clock, Mail, BookOpen, MapPin, Users, Loader2, Calendar
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../../../../axios";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function ManageRequests() {
 
@@ -33,6 +34,7 @@ export default function ManageRequests() {
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [rescheduleRequested, setRescheduleRequested] = useState(false);
 
   const fetchApt = useCallback(async () => {
     if (!aptId) return;
@@ -46,6 +48,7 @@ export default function ManageRequests() {
         setCreatorId(found.studentId);
         setPurpose(found.purpose || "Not Specified");
         setNote(found.note || "No additional notes provided.");
+        setRescheduleRequested(found.rescheduleRequested || false);
         
         if (found.recurrenceId) {
             const series = response.data.filter(a => a.recurrenceId === found.recurrenceId);
@@ -100,6 +103,7 @@ export default function ManageRequests() {
       <div className="max-w-6xl mx-auto px-6 md:px-10 py-12 relative z-10">
 
         {/* Page Heading */}
+        <Toaster position="top-center" />
         <div className="mb-10">
           <h2 className="text-3xl font-semibold text-[#1F3A5F] mb-2">Appointment Request</h2>
 
@@ -233,7 +237,7 @@ export default function ManageRequests() {
         </div>
 
         {/* Cancel Button */}
-        {(status !== "Completed" && status !== "Cancelled" && status !== "Rejected") && (
+        {(status !== "Completed" && status !== "Cancelled" && status !== "Rejected" && rescheduleRequested) && (
           <div className="mb-10">
             <button
               className="bg-red-600 hover:bg-red-700 text-white text-base px-6 py-3 rounded-lg transition"
@@ -270,7 +274,21 @@ export default function ManageRequests() {
                 Close
               </button>
 
-              <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
+              <button 
+                onClick={async () => {
+                   try {
+                     await api.post(`/appmt/student/cancel/${aptId}`);
+                     toast.success("Appointment cancelled successfully.");
+                     setTimeout(() => {
+                         window.location.href = '/student/history';
+                     }, 1500);
+                   } catch (e) {
+                     toast.error("Failed to cancel appointment");
+                     console.error(e);
+                   }
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+              >
                 Confirm Cancel Request
               </button>
             </div>
