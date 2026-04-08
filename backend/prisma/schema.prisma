@@ -137,5 +137,5 @@ model BackupLog {
   createdAt DateTime @default(now())
 
   // Relation to know which Admin created the backup
-  admin     User     @relation(fields: [adminId], references: [id])
+  //admin     User     @relation(fields: [adminId], references: [id])
 }
