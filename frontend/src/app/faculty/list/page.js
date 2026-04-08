@@ -76,12 +76,6 @@ export default function FacultyAppointmentList() {
               Review requests and manage your scheduled appointments efficiently.
             </p>
           </div>
-          
-          <div className="hidden sm:block">
-             <button className="inline-flex items-center gap-2 rounded-md border border-[#DCE3ED] bg-white px-4 py-2 text-sm font-medium text-[#1F3A5F] transition hover:bg-[#F4F7FB]">
-                 <Filter size={16} /> Filter Output
-             </button>
-          </div>
         </header>
 
         {/* List Card Area */}
@@ -204,6 +198,11 @@ function AppointmentRow({ data, type }) {
                          Group
                      </span>
                  )}
+                 {data.rescheduleRequested && (
+                     <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-100 rounded">
+                         Reschedule Requested
+                     </span>
+                 )}
               </h4>
               <p className="text-sm text-[#5A6C7D] flex flex-wrap items-center gap-2 mt-1">
                   <span className="flex items-center gap-1"><Clock size={14} /> Duration: {duration} min</span>
@@ -221,6 +220,12 @@ function AppointmentRow({ data, type }) {
               <p className="text-sm text-[#5A6C7D] mt-1 space-x-1 truncate max-w-full">
                  <span className="font-medium text-[#1F3A5F]">Purpose:</span> <span className="truncate max-w-[200px] sm:max-w-[400px] inline-block align-bottom">{data.purpose}</span>
               </p>
+              {data.cancellationNote && (
+                  <div className="mt-2 text-xs bg-rose-50 border border-rose-100 rounded p-2 text-rose-700 max-w-sm">
+                      <span className="font-bold block mb-0.5">Cancellation Note:</span>
+                      {data.cancellationNote}
+                  </div>
+              )}
           </div>
       </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import api from "../../../../axios";
 import { Loader2, ArrowLeft, Calendar, Clock, CheckCircle2, User, BookOpen, Clock3, MessageSquare } from "lucide-react";
 import Link from "next/link";
@@ -10,6 +10,8 @@ import toast, { Toaster } from "react-hot-toast";
 export default function BookAppointmentPage() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const oldId = searchParams.get("rescheduleOldId");
 
   const [availabilities, setAvailabilities] = useState([]);
   const [faculty, setFaculty] = useState(null);
@@ -89,8 +91,14 @@ export default function BookAppointmentPage() {
             recurringEndDate: isRecurringMeeting && recurringEndDate ? new Date(recurringEndDate).toISOString() : undefined
         };
         await api.post('/appmt', payload);
+        if (oldId) {
+            try {
+                await api.post(`/appmt/student/cancel/${oldId}`);
+            } catch (ignore) { console.error("Failed to cancel old apt", ignore); }
+        }
+        
         setSuccess(true);
-        toast.success("Appointment request sent!");
+        toast.success(oldId ? "Rescheduled successfully!" : "Appointment request sent!");
         setTimeout(() => {
             router.push('/student');
         }, 2000);

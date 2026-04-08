@@ -7,6 +7,7 @@ const availRoutes = require("./routes/avail.js");
 const appmtRoutes = require("./routes/appmt.js");
 const adminRoutes = require("./routes/adminRoutes");
 const ticketRoutes = require("./routes/tickets");
+const backupRoutes = require("./routes/backup.js");
 const facultyRoutes = require("./routes/facultyRoutes");
 
 const notificationsRoutes = require("./routes/notificationRoutes");
@@ -28,6 +29,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/tickets", ticketRoutes);
 
 app.use("/api/notifications", notificationsRoutes);
+app.use("/api/backup", backupRoutes);
+
 app.use("/api", facultyRoutes);
 
 const PORT = process.env.PORT || 6969;
@@ -39,6 +42,9 @@ app.listen(PORT, () => {
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the F.A.S API!" });
 });
+
+
+
 
 
 

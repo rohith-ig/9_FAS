@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Calendar, Clock, ChevronRight, Filter, Loader2 } from "lucide-react";
 import api from "../../../axios";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function StudentHistoryPage() {
 
@@ -20,11 +21,12 @@ export default function StudentHistoryPage() {
 
                     return {
                         id: apt.id,
+                        facultyId: apt.facultyId,
                         faculty: apt.faculty?.user?.name || "Faculty",
                         date: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
                         time: startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
                         status: displayStatus,
-                        rescheduleRequested: false,
+                        rescheduleRequested: apt.rescheduleRequested || false,
                         type: apt.purpose,
                         dept: apt.faculty?.department || "",
                         email: apt.faculty?.user?.email || "",
@@ -70,45 +72,42 @@ export default function StudentHistoryPage() {
         fetchAppointments();
     }, []);
 
-    const [statusFilter, setStatusFilter] = useState("All");
-    const [showFilter, setShowFilter] = useState(false);
+    const [activeTab, setActiveTab] = useState("pending");
 
     const rescheduleRequests = appointments.filter(
-        (apt) => apt.rescheduleRequested
+        (apt) => apt.rescheduleRequested && apt.status !== 'Cancelled' && apt.status !== 'Rejected'
     );
 
+    const pendingAppointments = appointments.filter(a => a.status === 'Pending');
+    const scheduledAppointments = appointments.filter(a => a.status === 'Confirmed');
+    const historyAppointments = appointments.filter(a => ['Rejected', 'Cancelled', 'Completed'].includes(a.status));
+
     const filteredAppointments =
-        statusFilter === "All"
-            ? appointments
-            : appointments.filter(
-                (apt) => apt.status === statusFilter
+        activeTab === "pending" ? pendingAppointments :
+        activeTab === "scheduled" ? scheduledAppointments :
+        historyAppointments;
+
+    const handleCancelAppointment = async (id) => {
+        try {
+            await api.post(`/appmt/student/cancel/${id}`);
+            const updatedAppointments = appointments.filter(
+                (apt) => apt.id !== id
             );
-
-    const handleCancelAppointment = (id) => {
-
-        const updatedAppointments = appointments.filter(
-            (apt) => apt.id !== id
-        );
-
-        setAppointments(updatedAppointments);
-
-        alert("Appointment cancelled. Faculty will be notified.");
+            setAppointments(updatedAppointments);
+            toast.success("Appointment cancelled. Faculty will be notified.");
+        } catch (e) {
+            console.error(e);
+            toast.error("Failed to cancel appointment");
+        }
     };
 
     const handlePickNewSlot = (apt) => {
-
-        const query = new URLSearchParams({
-            name: apt.faculty,
-            email: apt.email,
-            dept: apt.dept
-        });
-
-        window.location.href = `/student/reschedule?${query}`;
+        window.location.href = `/student/search/${apt.facultyId}?rescheduleOldId=${apt.id}`;
     };
 
     if (loading) {
         return (
-            <div className="flex h-[calc(100vh-100px)] w-full items-center justify-center text-[#5A6C7D] flex-col gap-3">
+            <div className="flex h-[calc(100vh-100px)] w-full items-center justify-center bg-[#F4F7FB] text-[#5A6C7D] flex-col gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-[#1F3A5F]" />
                 <p className="font-semibold">Loading History...</p>
             </div>
@@ -116,7 +115,9 @@ export default function StudentHistoryPage() {
     }
 
     return (
-        <div className="mx-auto w-full max-w-6xl px-4">
+        <div className="min-h-[calc(100vh-64px)] bg-[#F4F7FB] py-8 font-sans">
+        <div className="mx-auto w-full max-w-6xl px-4 md:px-8">
+            <Toaster position="top-center" />
 
             {/* HEADER */}
             <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -125,38 +126,9 @@ export default function StudentHistoryPage() {
                     <h1 className="text-3xl font-bold text-[#1F3A5F]">
                         Appointment History
                     </h1>
-                </div>
-
-                {/* FILTER BUTTON */}
-                <div className="relative">
-                    <button
-                        onClick={() => setShowFilter(!showFilter)}
-                        className="inline-flex items-center gap-2 rounded-md border border-[#DCE3ED] bg-white px-4 py-2 text-sm font-medium text-[#1F3A5F] transition hover:bg-[#F4F7FB]"
-                    >
-                        <Filter size={16} /> Filter Output
-                    </button>
-
-                    {showFilter && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white border border-[#DCE3ED] rounded-md shadow-sm z-10">
-
-                            {["All", "Confirmed", "Pending", "Completed"].map((status) => (
-                                <button
-                                    key={status}
-                                    onClick={() => {
-                                        setStatusFilter(status);
-                                        setShowFilter(false);
-                                    }}
-                                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#F4F7FB] ${statusFilter === status
-                                            ? "text-[#1F3A5F] font-medium"
-                                            : "text-[#5A6C7D]"
-                                        }`}
-                                >
-                                    {status}
-                                </button>
-                            ))}
-
-                        </div>
-                    )}
+                    <p className="text-[#5A6C7D] mt-1 text-sm md:text-base">
+                        View past meetings, manage pending requests, and track cancellations.
+                    </p>
                 </div>
 
             </header>
@@ -217,7 +189,41 @@ export default function StudentHistoryPage() {
 
 
             {/* APPOINTMENT LIST */}
-            <div className="bg-white rounded-xl border border-[#DCE3ED] shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-[#DCE3ED] shadow-sm flex flex-col md:min-h-[600px] overflow-hidden">
+            
+                {/* Tabs */}
+                <div className="flex bg-[#F8FAFC] border-b border-[#DCE3ED] overflow-x-auto">
+                    <button
+                        onClick={() => setActiveTab("pending")}
+                        className={`flex-1 px-4 py-3.5 text-sm font-semibold transition border-b-2 whitespace-nowrap flex items-center justify-center gap-2 ${
+                            activeTab === "pending"
+                            ? "text-[#1F3A5F] border-[#1F3A5F] bg-white"
+                            : "text-[#5A6C7D] border-transparent hover:text-[#1F3A5F] hover:bg-gray-50/50"
+                        }`}
+                    >
+                        Pending Requests <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-xs select-none">{pendingAppointments.length}</span>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("scheduled")}
+                        className={`flex-1 px-4 py-3.5 text-sm font-semibold transition border-b-2 whitespace-nowrap flex items-center justify-center gap-2 ${
+                            activeTab === "scheduled"
+                            ? "text-[#1F3A5F] border-[#1F3A5F] bg-white"
+                            : "text-[#5A6C7D] border-transparent hover:text-[#1F3A5F] hover:bg-gray-50/50"
+                        }`}
+                    >
+                        Confirmed <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-xs select-none">{scheduledAppointments.length}</span>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("history")}
+                        className={`flex-1 px-4 py-3.5 text-sm font-semibold transition border-b-2 whitespace-nowrap flex items-center justify-center gap-2 ${
+                            activeTab === "history"
+                            ? "text-[#1F3A5F] border-[#1F3A5F] bg-white"
+                            : "text-[#5A6C7D] border-transparent hover:text-[#1F3A5F] hover:bg-gray-50/50"
+                        }`}
+                    >
+                        History <span className="rounded-full bg-gray-200 text-gray-700 px-2 py-0.5 text-xs select-none">{historyAppointments.length}</span>
+                    </button>
+                </div>
 
                 {filteredAppointments.length > 0 ? (
 
@@ -227,7 +233,7 @@ export default function StudentHistoryPage() {
 
                             <li
                                 key={apt.id}
-                                className="p-5 hover:bg-[#F8FAFC] transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                                className="p-5 hover:bg-[#F8FAFC] group transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-l-4 border-transparent hover:border-[#4A6FA5]"
                             >
 
                                 <div className="flex items-start gap-4">
@@ -257,7 +263,7 @@ export default function StudentHistoryPage() {
                                             )}
                                         </p>
 
-                                        {(apt.status === "Cancelled" || apt.status === "Rejected") && apt.cancellationNote && (
+                                        {(apt.status === "Cancelled" || apt.status === "Rejected") && apt.cancellationNote && apt.cancellationNote !== "Cancelled by student" && (
                                             <div className="mt-2.5 bg-rose-50 border border-rose-100 rounded-md p-2.5 max-w-sm">
                                                 <p className="text-xs font-bold text-rose-800 mb-0.5">Cancellation Note:</p>
                                                 <p className="text-xs text-rose-700 leading-snug">{apt.cancellationNote}</p>
@@ -283,7 +289,7 @@ export default function StudentHistoryPage() {
 
                                     <Link
                                         href={`/student/history/manage?id=${apt.id}&name=${encodeURIComponent(apt.faculty)}&date=${encodeURIComponent(apt.date)}&time=${apt.time}&dept=${apt.dept}&email=${apt.email}&location=${apt.location}&status=${apt.status}&cancelNote=${encodeURIComponent(apt.cancellationNote || '')}`}
-                                        className="text-[#5A6C7D] hover:text-[#4A6FA5] p-2 rounded-md hover:bg-[#F4F7FB] transition"
+                                        className="text-[#5A6C7D] group-hover:bg-[#4A6FA5] group-hover:text-white p-2 rounded-full transition-all duration-300"
                                     >
                                         <ChevronRight size={20} />
                                     </Link>
@@ -307,7 +313,12 @@ export default function StudentHistoryPage() {
                         </p>
 
                         <p className="mt-1">
-                            No results for selected filter.
+                            {activeTab === "pending" 
+                                ? "You have no pending requests." 
+                                : activeTab === "scheduled" 
+                                    ? "You have no confirmed appointments coming up."
+                                    : "No appointment history found."
+                            }
                         </p>
 
                     </div>
@@ -316,6 +327,7 @@ export default function StudentHistoryPage() {
 
             </div>
 
+        </div>
         </div>
     );
 }
