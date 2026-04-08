@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import api from "../../../axios"
+import { toast } from "react-hot-toast";
 
 const dayHeaders = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -147,8 +148,11 @@ export default function FacultyScheduleViewPage() {
   const [saveNote, setSaveNote] = useState("");
   const [busyStart, setBusyStart] = useState("1:00 PM");
   const [busyEnd, setBusyEnd] = useState("5:00 PM");
-  const [busyAction, setBusyAction] = useState("reschedule");
+  const [showBusyModal, setShowBusyModal] = useState(false);
+  const [selectedSlots, setSelectedSlots] = useState([]);
+  const [editStatus, setEditStatus] = useState("");
 
+  const [conflictList, setConflictList] = useState([]);
   const [availabilityByDate, setAvailabilityByDate] = useState(() => ({
     [toDateKey(today)]: ["10:00 AM - 10:30 AM", "2:00 PM - 2:30 PM"],
     [toDateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1))]: [
@@ -158,7 +162,11 @@ export default function FacultyScheduleViewPage() {
 
   const [appointments, setAppointments] = useState([]);
 
-
+  // STEP 1: Reschedule modal state
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [suggestedSlot, setSuggestedSlot] = useState(null);
+  // 
   const selectedDate = fromDateKey(selectedDateKey);
   const selectedWeekday = new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(selectedDate);
   const monthCells = useMemo(() => buildMonthCells(visibleMonth), [visibleMonth]);
@@ -182,6 +190,101 @@ export default function FacultyScheduleViewPage() {
   const availabilityForDay = availabilityByDate[selectedDateKey] ?? [];
   const draftSlotsBase = draftAvailabilityByDate[selectedDateKey] ?? availabilityForDay;
   const draftSlots = draftSlotsBase.filter((slot) => !isSlotBlocked(slot));
+
+  const slotMap = {
+  F:[["Mon","08:00-08:50"],["Tue","05:00-05:50"],["Thu","08:00-08:50"]],
+  H:[["Tue","08:00-08:50"],["Wed","05:00-05:50"],["Fri","08:00-08:50"]],
+  G:[["Wed","08:00-08:50"],["Mon","05:00-05:50"],["Thu","05:00-05:50"]],
+  A1:[["Mon","09:00-09:50"],["Thu","11:00-11:50"],["Fri","10:00-10:50"],["Wed","12:00-12:50"]],
+  A2:[["Mon","02:00-02:50"],["Thu","04:00-04:50"],["Fri","03:00-03:50"],["Wed","01:00-01:50"]],
+};
+
+const toggleEditSlot = (slot) => {
+  if (selectedSlots.includes(slot)) {
+    setSelectedSlots(selectedSlots.filter(s => s !== slot));
+  } else {
+    setSelectedSlots([...selectedSlots, slot]);
+  }
+};
+
+const handleAddSlots = async () => {
+  try {
+    const res = await api.post("/faculty/add-slots", {
+      slots: selectedSlots
+    });
+
+    setEditStatus("Slots added successfully");
+    setSelectedSlots([]);
+
+  } catch (err) {
+    console.error(err);
+    setEditStatus("Failed to add slots");
+  }
+};
+
+const handleDeleteSlots = async () => {
+  try {
+    const res = await api.delete("/faculty/delete-slots", {
+      data: { slots: selectedSlots }
+    });
+
+    setEditStatus("Slots removed successfully");
+    setSelectedSlots([]);
+
+  } catch (err) {
+    console.error(err);
+    setEditStatus("Failed to delete slots");
+  }
+};
+
+  // STEP 2: Fetch suggested slot and open modal 
+  const handleRescheduleClick = async (appointment) => {
+    try {
+      const realId = appointment.id.split("-")[1];
+
+      const res = await api.get(`/appmt/nextSlot/${realId}`);
+
+      setSelectedAppointment(appointment);
+      setSuggestedSlot(res.data);
+      setShowRescheduleModal(true);
+
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Failed to fetch slot");
+    }
+  };
+  //
+
+  // STEP 3: Confirm reschedule 
+  const handleConfirmReschedule = async () => {
+    try {
+      const realId = selectedAppointment.id.split("-")[1];
+
+      await api.post(`/appmt/reschedule/${realId}`);
+
+      toast.success("Rescheduled successfully");
+
+      setAppointments(prev =>
+        prev.map(app =>
+          app.id === selectedAppointment.id
+            ? {
+                ...app,
+                time: `${new Date(suggestedSlot.start).toLocaleTimeString()} - ${new Date(suggestedSlot.end).toLocaleTimeString()}`
+              }
+            : app
+        )
+      );
+
+      setShowRescheduleModal(false);
+      setSelectedAppointment(null);
+      setSuggestedSlot(null);
+
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || "Reschedule failed");
+    }
+  };
+  // 
 
   const toggleSlot = (slot) => {
     if (!canEditAvailability) return;
@@ -214,44 +317,69 @@ export default function FacultyScheduleViewPage() {
 
   const saveAvailability = async () => {
     if (!canEditAvailability) return;
-    
+
     const newDrafts = draftSlots.filter(s => !availabilityForDay.includes(s));
-    
+
     if (newDrafts.length === 0) {
       setSaveNote("No new drafts to save.");
       return;
     }
 
     try {
-        for (const slot of newDrafts) {
-            const [startRaw, endRaw] = slot.split("-").map(p => p.trim());
-            const [year, month, day] = selectedDateKey.split("-").map(Number);
-            
-            const startDate = new Date(year, month - 1, day);
-            startDate.setMinutes(startDate.getMinutes() + toMinutes(startRaw));
-            
-            const endDate = new Date(year, month - 1, day);
-            endDate.setMinutes(endDate.getMinutes() + toMinutes(endRaw));
+      for (const slot of newDrafts) {
+        const [startRaw, endRaw] = slot.split("-").map(p => p.trim());
+        const [year, month, day] = selectedDateKey.split("-").map(Number);
 
-            await api.post('/avail/', {
-                start: startDate.toISOString(),
-                end: endDate.toISOString()
-            });
-        }
-        
-        setSaveNote(`Availability saved for ${formatDateLong(selectedDate)}.`);
-        
-        // Refresh
-        const response = await api.get(`/avail/`);
-        const newAvailability = convertAvailability(response.data);
-        setAvailabilityByDate(newAvailability);
-        
-        // Clean drafts
-        setDraftAvailabilityByDate((prev) => ({ ...prev, [selectedDateKey]: newAvailability[selectedDateKey] || [] }));
+        const startDate = new Date(year, month - 1, day);
+        startDate.setMinutes(startDate.getMinutes() + toMinutes(startRaw));
+
+        const endDate = new Date(year, month - 1, day);
+        endDate.setMinutes(endDate.getMinutes() + toMinutes(endRaw));
+
+        await api.post('/avail/', {
+          start: startDate.toISOString(),
+          end: endDate.toISOString()
+        });
+      }
+
+      setSaveNote(`Availability saved for ${formatDateLong(selectedDate)}.`);
+
+      // Refresh
+      const response = await api.get(`/avail/`);
+      const newAvailability = convertAvailability(response.data);
+      setAvailabilityByDate(newAvailability);
+
+      // Clean drafts
+      setDraftAvailabilityByDate((prev) => ({ ...prev, [selectedDateKey]: newAvailability[selectedDateKey] || [] }));
 
     } catch (err) {
-        setSaveNote("Failed to save some slots. Check conflicts or times.");
-        console.error(err);
+      setSaveNote("Failed to save some slots. Check conflicts or times.");
+      console.error(err);
+    }
+  };
+
+  const handleReviewConflicts = async () => {
+    const [year, month, day] = selectedDateKey.split("-").map(Number);
+    const startDate = new Date(year, month - 1, day);
+    startDate.setMinutes(startDate.getMinutes() + toMinutes(busyStart));
+    const endDate = new Date(year, month - 1, day);
+    endDate.setMinutes(endDate.getMinutes() + toMinutes(busyEnd));
+
+    try {
+      const res = await api.post('/appmt/time', {
+        start: startDate.toISOString(),
+        end: endDate.toISOString()
+      });
+      const conflicts = res.data.map(appmt => ({
+        id: appmt.id,
+        student: appmt.students[0]?.student?.user?.name || "Student",
+        purpose: appmt.purpose,
+        time: formatInterval(new Date(appmt.start), new Date(appmt.end))
+      }));
+      setConflictList(conflicts);
+      setShowBusyModal(true);
+    } catch(err) {
+      toast.error("Failed to check conflicts.");
     }
   };
 
@@ -262,22 +390,23 @@ export default function FacultyScheduleViewPage() {
           api.get('/avail/'),
           api.get('/appmt/')
         ]);
-        
+
         setAvailabilityByDate(convertAvailability(availRes.data));
-        
+
         const fetchedAppmts = appmtRes.data.map(appmt => {
-            const startDate = new Date(appmt.start);
-            const endDate = new Date(appmt.end);
-            return {
-                id: `A-${appmt.id}`,
-                dateKey: toDateKey(startDate),
-                student: appmt.student?.user?.name || "Student",
-                title: appmt.purpose,
-                time: formatInterval(startDate, endDate),
-                status: appmt.status
-            };
-        }).filter(a => a.status === 'APPROVED'); // only approved block slots normally 
-        
+          const startDate = new Date(appmt.start);
+          const endDate = new Date(appmt.end);
+          return {
+            id: `A-${appmt.id}`,
+            dateKey: toDateKey(startDate),
+            student: appmt.student?.user?.name || "Student",
+            title: appmt.purpose,
+            time: formatInterval(startDate, endDate),
+            status: appmt.status,
+            recurrenceRule: appmt.recurrenceRule
+          };
+        }).filter(a => a.status === 'APPROVED');
+
         setAppointments(fetchedAppmts);
 
       } catch (error) {
@@ -301,7 +430,7 @@ export default function FacultyScheduleViewPage() {
               </p>
             </div>
 
-            <div className="flex overflow-hidden rounded-xl border border-[#C8D3E0] bg-[#F8FAFC] p-1 shadow-inner h-[40px]">
+            <div className="flex overflow-hidden rounded-xl border border-[#C8D3E0] bg-[#F8FAFC] p-1 shadow-inner h-15">
               <button
                 type="button"
                 onClick={() => setActiveTab("agenda")}
@@ -323,12 +452,23 @@ export default function FacultyScheduleViewPage() {
               >
                 Override & Busy
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("edit")}
+                className={`flex-1 rounded-lg px-5 text-sm font-semibold transition-all ${
+                  activeTab === "edit"
+                    ? "bg-white text-[#1F3A5F] shadow-sm"
+                    : "text-[#5A6C7D] hover:text-[#1F3A5F]"
+                }`}
+              >
+                Edit Slots
+              </button>
             </div>
           </div>
         </header>
 
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-12 flex-1 min-h-0">
-          {}
+          { }
           <article className="lg:col-span-5 rounded-xl border border-[#DCE3ED] bg-white p-4 shadow-sm h-full overflow-y-auto custom-scrollbar">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-[#1F3A5F]">Calendar</h2>
@@ -418,18 +558,30 @@ export default function FacultyScheduleViewPage() {
 
               <div className="mt-4 rounded-md border border-[#DCE3ED] bg-[#FBFCFE] p-4">
                 <h3 className="text-sm font-semibold text-[#1F3A5F]">Appointments</h3>
-                {isBeyondWindow ? (
-                  <p className="mt-2 text-sm text-[#5A6C7D]">
-                    Outside 7-day window: appointment slots are not open yet.
-                  </p>
-                ) : appointmentsForDay.length === 0 ? (
+                {appointmentsForDay.length === 0 ? (
                   <p className="mt-2 text-sm text-[#5A6C7D]">No appointments for this day.</p>
                 ) : (
                   <div className="mt-2 space-y-2">
                     {appointmentsForDay.map((item) => (
                       <div key={item.id} className="rounded-md border border-[#DCE3ED] bg-white p-3 text-sm">
-                        <p className="font-semibold text-[#1F3A5F]">{item.title}</p>
-                        <p className="text-[#5A6C7D]">{item.time} · {item.student}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-[#1F3A5F]">{item.title}</p>
+                          {item.recurrenceRule && (
+                            <span className="inline-flex items-center rounded bg-[#EEF3FA] px-1.5 py-0.5 text-[10px] font-bold text-[#4A6FA5] uppercase tracking-wider border border-[#DCE3ED]">
+                              ⟳ {item.recurrenceRule}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[#5A6C7D] mt-1">{item.time} · {item.student}</p>
+                        {/* STEP 4: Reschedule button - only for APPROVED appointments */}
+                        {item.status === "APPROVED" && (
+                          <button
+                            onClick={() => handleRescheduleClick(item)}
+                            className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded"
+                          >
+                            Reschedule
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -454,7 +606,7 @@ export default function FacultyScheduleViewPage() {
             </article>
           )}
 
-          {}
+          { }
           {activeTab === "availability" && (
             <article className="lg:col-span-7 rounded-xl border border-[#DCE3ED] bg-white p-4 shadow-sm animate-fade-in h-full overflow-y-auto custom-scrollbar">
               <h2 className="text-lg font-bold text-[#1F3A5F]">Manage Availability for {formatDateLong(selectedDate)}</h2>
@@ -469,7 +621,7 @@ export default function FacultyScheduleViewPage() {
                     : "Beyond 7 days: read-only (department assignments only)."}
               </p>
 
-              {}
+              { }
               <div className="mt-4 flex flex-col gap-4">
 
                 {/* Add Custom Slot */}
@@ -510,7 +662,7 @@ export default function FacultyScheduleViewPage() {
                         }`}
                     >
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7 1V13M1 7H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M7 1V13M1 7H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                       Add Slot
                     </button>
@@ -518,7 +670,7 @@ export default function FacultyScheduleViewPage() {
                   {saveNote && (saveNote.includes("conflict") || saveNote.includes("End time")) && (
                     <div className="mt-3 flex items-center gap-2 text-sm font-medium text-[#B05555] bg-[#FDECEC] p-2.5 rounded-md border border-[#E4B8B8]">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14ZM8 5V8M8 11H8.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14ZM8 5V8M8 11H8.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                       {saveNote}
                     </div>
@@ -540,8 +692,8 @@ export default function FacultyScheduleViewPage() {
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {availabilityForDay.map((slot) => (
-                           <div
-                            key={'saved-'+slot}
+                          <div
+                            key={'saved-' + slot}
                             className="flex items-center gap-1 rounded-lg border border-[#C8D3E0] bg-[#E2E8F0] pl-3 pr-3 py-1.5 text-sm text-[#5A6C7D] shadow-sm opacity-80 cursor-default"
                             title="Saved slot"
                           >
@@ -567,7 +719,7 @@ export default function FacultyScheduleViewPage() {
                       <div className="flex flex-wrap gap-2">
                         {draftSlots.filter(s => !availabilityForDay.includes(s)).map((slot) => (
                           <div
-                            key={'draft-'+slot}
+                            key={'draft-' + slot}
                             className="flex items-center gap-1 rounded-lg border border-[#B8E4C9] bg-[#F0FDF4] pl-3 pr-1 py-1.5 text-sm text-[#206A3A] shadow-sm"
                           >
                             <span className="font-medium">{slot}</span>
@@ -579,7 +731,7 @@ export default function FacultyScheduleViewPage() {
                                 aria-label="Remove slot"
                               >
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M1 1L11 11M1 11L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M1 1L11 11M1 11L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                               </button>
                             )}
@@ -593,28 +745,28 @@ export default function FacultyScheduleViewPage() {
                 {/* Blocked Slots */}
                 <section className="flex flex-col min-h-[140px] rounded-xl border border-[#E9C5C5] bg-[#FFFBFB] p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#FDECEC]">
-                     <h3 className="text-sm font-semibold text-[#9A3E3E]">Blocked Times</h3>
-                     <span className="text-xs font-semibold text-[#9A3E3E] bg-[#FDECEC] px-2.5 py-1 rounded-full">{blockedRangesForDay.length}</span>
+                    <h3 className="text-sm font-semibold text-[#9A3E3E]">Blocked Times</h3>
+                    <span className="text-xs font-semibold text-[#9A3E3E] bg-[#FDECEC] px-2.5 py-1 rounded-full">{blockedRangesForDay.length}</span>
                   </div>
 
                   {blockedRangesForDay.length === 0 ? (
-                     <div className="flex-1 flex flex-col items-center justify-center text-center border border-dashed border-[#E4B8B8] bg-white rounded-lg p-4">
-                       <p className="text-sm text-[#7B5A5A]">No blocked slots.</p>
-                     </div>
+                    <div className="flex-1 flex flex-col items-center justify-center text-center border border-dashed border-[#E4B8B8] bg-white rounded-lg p-4">
+                      <p className="text-sm text-[#7B5A5A]">No blocked slots.</p>
+                    </div>
                   ) : (
-                     <div className="flex flex-wrap gap-2">
-                       {blockedRangesForDay.map((slot) => (
-                         <span
-                           key={`blocked-${slot}`}
-                           className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-[#FDECEC] text-[#B05555] border border-[#E4B8B8] shadow-sm"
-                         >
-                           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1.5">
-                              <path d="M6 11A5 5 0 1 0 6 1A5 5 0 0 0 6 11ZM3.5 3.5L8.5 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                           </svg>
-                           {slot}
-                         </span>
-                       ))}
-                     </div>
+                    <div className="flex flex-wrap gap-2">
+                      {blockedRangesForDay.map((slot) => (
+                        <span
+                          key={`blocked-${slot}`}
+                          className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-[#FDECEC] text-[#B05555] border border-[#E4B8B8] shadow-sm"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1.5">
+                            <path d="M6 11A5 5 0 1 0 6 1A5 5 0 0 0 6 11ZM3.5 3.5L8.5 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          {slot}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </section>
 
@@ -623,7 +775,7 @@ export default function FacultyScheduleViewPage() {
                     {saveNote && !saveNote.includes("conflict") && !saveNote.includes("End time") && (
                       <div className="text-sm font-medium text-[#2E7D42] flex items-center gap-2">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                         {saveNote}
                       </div>
@@ -646,7 +798,7 @@ export default function FacultyScheduleViewPage() {
             </article>
           )}
 
-          {}
+          { }
           {activeTab === "busy" && (
             <article className="lg:col-span-7 rounded-xl border border-[#DCE3ED] bg-white p-4 shadow-sm animate-fade-in h-full overflow-y-auto custom-scrollbar">
               <h2 className="text-lg font-bold text-[#1F3A5F]">Set Busy Status for {formatDateLong(selectedDate)}</h2>
@@ -688,17 +840,17 @@ export default function FacultyScheduleViewPage() {
                 {/* Validation Note */}
                 <section>
                   <div className={`flex items-start gap-3 rounded-md border p-4 transition-colors ${canEditAvailability && isBusyRangeValid
-                      ? "border-[#E4B8B8] bg-[#FDECEC]"
-                      : canEditAvailability
-                        ? "border-[#FFE5B4] bg-[#FFF8ED]"
-                        : "border-[#DCE3ED] bg-[#FBFCFE]"
+                    ? "border-[#E4B8B8] bg-[#FDECEC]"
+                    : canEditAvailability
+                      ? "border-[#FFE5B4] bg-[#FFF8ED]"
+                      : "border-[#DCE3ED] bg-[#FBFCFE]"
                     }`}>
                     <div>
                       <h4 className={`text-sm font-semibold ${canEditAvailability && isBusyRangeValid
-                          ? "text-[#9A3E3E]"
-                          : canEditAvailability
-                            ? "text-[#986A26]"
-                            : "text-[#5A6C7D]"
+                        ? "text-[#9A3E3E]"
+                        : canEditAvailability
+                          ? "text-[#986A26]"
+                          : "text-[#5A6C7D]"
                         }`}>
                         {canEditAvailability && isBusyRangeValid
                           ? "Review Busy Override"
@@ -707,10 +859,10 @@ export default function FacultyScheduleViewPage() {
                             : "Status Read-Only"}
                       </h4>
                       <p className={`mt-0.5 text-sm ${canEditAvailability && isBusyRangeValid
-                          ? "text-[#B05555]"
-                          : canEditAvailability
-                            ? "text-[#B07B2D]"
-                            : "text-[#6E8196]"
+                        ? "text-[#B05555]"
+                        : canEditAvailability
+                          ? "text-[#B07B2D]"
+                          : "text-[#6E8196]"
                         }`}>
                         {canEditAvailability && isBusyRangeValid
                           ? `You are about to mark the time between ${busyRange} as busy.`
@@ -722,70 +874,241 @@ export default function FacultyScheduleViewPage() {
                   </div>
                 </section>
 
-                {/* Conflict Handling Options */}
-                <section>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-[#1F3A5F]">Conflict Handling Strategy</h3>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <button
-                      type="button"
-                      onClick={() => setBusyAction("cancel")}
-                      className={`relative flex flex-col items-center p-4 rounded-md border transition-all ${busyAction === "cancel"
-                        ? "border-[#B05555] bg-[#FDECEC]"
-                        : "border-[#DCE3ED] bg-white hover:border-[#E4B8B8] hover:bg-[#FFFBFB]"
-                        }`}
-                    >
-                      <span className={`font-semibold text-sm text-center ${busyAction === "cancel" ? "text-[#9A3E3E]" : "text-[#5A6C7D]"}`}>Cancel All</span>
-                      <span className={`text-xs text-center mt-1 ${busyAction === "cancel" ? "text-[#B05555]" : "text-[#9AAABC]"}`}>Cancel overlapping requests immediately</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setBusyAction("reschedule")}
-                      className={`relative flex flex-col items-center p-4 rounded-md border transition-all ${busyAction === "reschedule"
-                        ? "border-[#1F3A5F] bg-[#F8FAFC]"
-                        : "border-[#DCE3ED] bg-white hover:border-[#C8D3E0] hover:bg-[#F8FAFC]"
-                        }`}
-                    >
-                      <span className={`font-semibold text-sm text-center ${busyAction === "reschedule" ? "text-[#1F3A5F]" : "text-[#5A6C7D]"}`}>Auto-Reschedule</span>
-                      <span className={`text-xs text-center mt-1 ${busyAction === "reschedule" ? "text-[#2A4A75]" : "text-[#9AAABC]"}`}>Send requests to pick a new time</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setBusyAction("manual")}
-                      className={`relative flex flex-col items-center p-4 rounded-md border transition-all ${busyAction === "manual"
-                        ? "border-[#1F3A5F] bg-[#F8FAFC]"
-                        : "border-[#DCE3ED] bg-white hover:border-[#C8D3E0] hover:bg-[#F8FAFC]"
-                        }`}
-                    >
-                      <span className={`font-semibold text-sm text-center ${busyAction === "manual" ? "text-[#1F3A5F]" : "text-[#5A6C7D]"}`}>Manual Triage</span>
-                      <span className={`text-xs text-center mt-1 ${busyAction === "manual" ? "text-[#2A4A75]" : "text-[#9AAABC]"}`}>Review each conflict case by case</span>
-                    </button>
-                  </div>
-                </section>
-
                 {/* Submit Container */}
                 <div className="flex flex-col items-center gap-3 pt-2">
-                  {/* API CALL REQUIRED: POST /avail/busy (Set busy status and trigger triaged conflict rescheduling workflow) */}
                   <button
                     type="button"
-                    className={`w-full sm:w-auto min-w-[200px] rounded-md px-6 py-2.5 text-sm font-semibold transition-colors ${canEditAvailability && isBusyRangeValid
+                    className={`w-full sm:w-auto min-w-[250px] rounded-lg px-6 py-3 text-sm font-bold transition-colors shadow-sm ${canEditAvailability && isBusyRangeValid
                       ? "bg-[#B05555] text-white hover:bg-[#9A3E3E]"
                       : "bg-[#9AAABC] text-white cursor-not-allowed"
                       }`}
                     disabled={!canEditAvailability || !isBusyRangeValid}
-                    onClick={() => { }}
+                    onClick={handleReviewConflicts}
                   >
-                    Confirm Busy Status
+                    Review Conflicts & Set Busy
                   </button>
                 </div>
               </div>
             </article>
           )}
+          {activeTab === "edit" && (
+  <article className="lg:col-span-7 rounded-xl border border-[#DCE3ED] bg-white p-4 shadow-sm">
+
+    <h2 className="text-lg font-bold text-[#1F3A5F]">
+      Edit Your Slots
+    </h2>
+
+    <p className="text-sm text-[#5A6C7D] mt-1">
+      Select slots to add or remove from your timetable.
+    </p>
+
+    {/* SLOT BUTTONS */}
+    <div className="flex flex-wrap gap-3 mt-5">
+      {Object.keys(slotMap).map(slot => (
+        <button
+          key={slot}
+          onClick={() => toggleEditSlot(slot)}
+          className={`px-3 py-2 rounded-md border text-sm transition
+            ${selectedSlots.includes(slot)
+              ? "bg-[#2A4A75] text-white"
+              : "bg-white hover:bg-[#F2F6FC]"}
+          `}
+        >
+          {slot}
+        </button>
+      ))}
+    </div>
+
+    {/* ACTION BUTTONS */}
+    <div className="mt-6 flex gap-3">
+      <button
+        onClick={handleAddSlots}
+        className="px-6 py-2 bg-green-600 text-white rounded-lg"
+      >
+        Add Slots
+      </button>
+
+      <button
+        onClick={handleDeleteSlots}
+        className="px-6 py-2 bg-red-500 text-white rounded-lg"
+      >
+        Remove Slots
+      </button>
+    </div>
+
+    {/* STATUS */}
+    {editStatus && (
+      <div className="mt-3 text-sm text-green-600">
+        {editStatus}
+      </div>
+    )}
+
+  </article>
+)}
         </section>
       </section>
-    </main >
+
+      {/* Busy Modal Overlay */}
+      {showBusyModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1F3A5F]/40 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-up">
+
+            <div className="flex flex-col p-6 border-b border-[#DCE3ED] bg-white relative">
+              <button onClick={() => setShowBusyModal(false)} className="absolute top-6 right-6 text-[#5A6C7D] hover:text-[#1F3A5F] rounded-full p-1 hover:bg-[#F3F6FA] transition">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              </button>
+              <h2 className="text-xl font-bold text-[#1F3A5F]">Review Conflicts</h2>
+              <p className="text-sm text-[#B05555] mt-1 font-medium leading-relaxed max-w-[90%]">Warning: Setting this time as busy dynamically affects <span className="font-bold underline">{conflictList.length}</span> tracked appointments.</p>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-7 bg-[#F4F7FB] flex-1">
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider">Affected Appointments</h3>
+
+                {conflictList.length === 0 ? (
+                  <div className="p-6 text-center border border-dashed border-[#C8D3E0] rounded-xl bg-white text-[#5A6C7D]">
+                    All conflicts resolved. Safe to close and proceed.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {conflictList.map(conflict => (
+                      <div key={conflict.id} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-[#E9C5C5] rounded-xl p-4 shadow-sm gap-4">
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-bold text-[#1F3A5F] text-sm">{conflict.student}</span>
+                            <span className="text-[10px] font-bold bg-[#FDECEC] text-[#B05555] px-2 py-0.5 rounded border border-[#E4B8B8] uppercase tracking-wider">Conflict</span>
+                          </div>
+                          <span className="text-xs font-medium text-[#5A6C7D]">{conflict.purpose} &bull; {conflict.time}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={async () => {
+                              try {
+                                await api.post(`/appmt/update/${conflict.id}`, { status: 'CANCELLED', cancel: 'Faculty is busy during the appointment time' });
+                                toast.success(`Triggering Auto-Reschedule workflow for ${conflict.student}...`);
+                                setConflictList(prev => prev.filter(c => c.id !== conflict.id));
+                              } catch(e) { toast.error("Failed to cancel.") }
+                            }}
+                            className="px-3 py-1.5 bg-[#F3F6FA] hover:bg-[#E8EEF5] text-[#4A6FA5] text-xs font-bold rounded shadow-sm border border-[#DCE3ED] transition-colors"
+                          >
+                            Reschedule
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await api.post(`/appmt/update/${conflict.id}`, { status: 'CANCELLED', cancel: 'Faculty is busy during the appointment time' });
+                                setConflictList(prev => prev.filter(c => c.id !== conflict.id));
+                                toast.success("Cancelled dynamically.");
+                              } catch(e) { toast.error("Failed to cancel.") }
+                            }}
+                            className="px-3 py-1.5 bg-[#FDECEC] hover:bg-[#FAD4D4] text-[#B05555] text-xs font-bold rounded shadow-sm border border-[#E4B8B8] transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-[#DCE3ED] bg-white flex flex-col sm:flex-row justify-end items-center gap-3 z-10 shadow-[0_-4px_10px_-4px_rgba(0,0,0,0.05)]">
+              <div className="flex w-full sm:w-auto sm:mr-auto">
+                {conflictList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await api.post('/appmt/bulkCancel', {
+                           appointmentIds: conflictList.map(c => c.id),
+                           cancelNote: "Faculty set this time as busy."
+                        });
+                        setConflictList([]);
+                        toast.success("All remaining overlapping appointments individually cancelled.");
+                      } catch(e) { toast.error("Failed to cancel remaining."); }
+                    }}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold text-white bg-[#B05555] hover:bg-[#9A3E3E] transition-colors shadow-sm"
+                  >
+                    Cancel All Remaining
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBusyModal(false)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold text-[#5A6C7D] bg-[#F3F6FA] border border-[#DCE3ED] hover:bg-[#E8EEF5] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const [year, month, day] = selectedDateKey.split("-").map(Number);
+                    const startDate = new Date(year, month - 1, day);
+                    startDate.setMinutes(startDate.getMinutes() + toMinutes(busyStart));
+                    const endDate = new Date(year, month - 1, day);
+                    endDate.setMinutes(endDate.getMinutes() + toMinutes(busyEnd));
+                    await api.post('/avail/busy', {
+                       start: startDate.toISOString(),
+                       end: endDate.toISOString()
+                    });
+                    setShowBusyModal(false);
+                    toast.success(`Success! Handled block securely resolved successfully.`);
+                    setTimeout(() => window.location.reload(), 1500);
+                  } catch(err) {
+                    toast.error(err.response?.data?.error || "Failed to create busy block");
+                  }
+                }}
+                className="w-full sm:w-auto px-7 py-2.5 rounded-lg text-sm font-bold text-white bg-[#1F3A5F] hover:bg-[#2A4A75] transition-colors shadow-sm"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 5: Reschedule Confirmation Modal */}
+      {showRescheduleModal && suggestedSlot && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+
+            <h2 className="text-lg font-bold mb-3">Confirm Reschedule</h2>
+
+            <p className="text-sm">
+              Suggested slot:
+              <br />
+              <b>
+                {new Date(suggestedSlot.start).toLocaleString()} -{" "}
+                {new Date(suggestedSlot.end).toLocaleTimeString()}
+              </b>
+            </p>
+
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={handleConfirmReschedule}
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                Confirm
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowRescheduleModal(false);
+                  setSuggestedSlot(null);
+                }}
+                className="bg-gray-300 px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+      {/*  */}
+    </main>
   );
 }

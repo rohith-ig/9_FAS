@@ -27,9 +27,31 @@ export default function FacultyAppointmentList() {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  const pendingAppointments = appointments.filter(a => a.status === 'PENDING');
-  const scheduledAppointments = appointments.filter(a => a.status === 'APPROVED');
-  const historyAppointments = appointments.filter(a => ['REJECTED', 'CANCELLED'].includes(a.status) || new Date(a.end) < new Date());
+  const groupAppointments = (appts) => {
+    const grouped = [];
+    const seen = new Set();
+    for (const appt of appts) {
+      if (appt.recurrenceId) {
+        if (seen.has(appt.recurrenceId)) continue;
+        seen.add(appt.recurrenceId);
+        
+        const series = appts.filter(a => a.recurrenceId === appt.recurrenceId);
+        grouped.push({
+          ...appt,
+          isGroupedSeries: true,
+          seriesCount: series.length,
+          recurrenceRule: appt.recurrenceRule
+        });
+      } else {
+        grouped.push(appt);
+      }
+    }
+    return grouped;
+  };
+
+  const pendingAppointments = groupAppointments(appointments.filter(a => a.status === 'PENDING'));
+  const scheduledAppointments = groupAppointments(appointments.filter(a => a.status === 'APPROVED'));
+  const historyAppointments = groupAppointments(appointments.filter(a => ['REJECTED', 'CANCELLED'].includes(a.status) || new Date(a.end) < new Date()));
 
   if (loading) {
     return (
@@ -183,11 +205,16 @@ function AppointmentRow({ data, type }) {
                      </span>
                  )}
               </h4>
-              <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
-                  <Clock size={14} /> Duration: {duration} min
+              <p className="text-sm text-[#5A6C7D] flex flex-wrap items-center gap-2 mt-1">
+                  <span className="flex items-center gap-1"><Clock size={14} /> Duration: {duration} min</span>
                   {data.capacity > 1 && (
-                     <span className="ml-2 font-semibold text-[#4A6FA5] flex items-center gap-1">
+                     <span className="font-semibold text-[#4A6FA5] flex items-center gap-1 ml-1">
                         <User size={12} /> {data.students?.length || 1}/{data.capacity}
+                     </span>
+                  )}
+                  {data.isGroupedSeries && (
+                     <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-1 ml-1">
+                         ⟳ {data.recurrenceRule} ({data.seriesCount}x)
                      </span>
                   )}
               </p>

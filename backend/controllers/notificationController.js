@@ -7,6 +7,7 @@ const getNotifications = async (req, res) => {
     const notifications = await notificationService.getUserNotifications(userId);
     res.json(notifications);
   } catch (err) {
+    console.log(err)
     res.status(500).json({ error: 'Failed to fetch notifications' });
   }
 };

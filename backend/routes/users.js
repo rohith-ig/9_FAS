@@ -4,6 +4,8 @@ const {check} = require("../middlewares/roleCheck")
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 
+const getFaculty = require("../controllers/getFaculty");
+
 const {
   addUser,
   deleteUser,
@@ -23,5 +25,6 @@ router.post(
   bulkUploadUsers
 );
 router.put("/update-user/:id", check, updateUser);
+router.get("/faculty", check, getFaculty);
 
 module.exports = router;

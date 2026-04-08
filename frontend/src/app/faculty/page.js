@@ -9,8 +9,9 @@ import {
     Settings,
 } from "lucide-react";
 import api from "../../axios";
-import { useEffect, useState, useCallback } from "react";
-import { Loader2 } from "lucide-react";const facultyAppointments = [
+import { useEffect, useState, useCallback, useContext } from "react";
+import { Context } from "../../components/context.js";
+import { Loader2 } from "lucide-react"; const facultyAppointments = [
     {
         id: 101,
         studentName: "Ada Lovelace",
@@ -66,13 +67,17 @@ const quickActions = [
 export default function FacultyDashboard() {
     const [facultyAppointments, setFacultyAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
-
+    const [user, setUser] = useState(null);
+    const { setUserData } = useContext(Context);
     const fetchDetails = useCallback(async () => {
         setLoading(true);
         try {
             const response = await api.get('/appmt');
+            const userData = await api.get('/users/get');
             console.log('Fetched appointments:', response.data);
+            console.log('Fetched user data:', userData.data);
             setFacultyAppointments(response.data);
+            setUserData({ name: userData.data.user.name, data: userData.data?.user.facultyProfile.designation, profilePic: userData.data?.user.profilePic });
         } catch (error) {
             console.error('Error fetching faculty appointments:', error);
         } finally {
@@ -85,11 +90,33 @@ export default function FacultyDashboard() {
     }, [fetchDetails]);
 
 
-    const pendingRequests = [...facultyAppointments]
-        .filter(apt => apt.status === 'PENDING')
+    const groupAppointments = (appts) => {
+        const grouped = [];
+        const seen = new Set();
+        for (const appt of appts) {
+            if (appt.recurrenceId) {
+                if (seen.has(appt.recurrenceId)) continue;
+                seen.add(appt.recurrenceId);
+                const series = appts.filter(a => a.recurrenceId === appt.recurrenceId);
+                grouped.push({
+                    ...appt,
+                    isGroupedSeries: true,
+                    seriesCount: series.length,
+                    recurrenceRule: appt.recurrenceRule
+                });
+            } else {
+                grouped.push(appt);
+            }
+        }
+        return grouped;
+    };
+
+    const allPendingGrouped = groupAppointments([...facultyAppointments].filter(apt => apt.status === 'PENDING'));
+    
+    const pendingRequests = [...allPendingGrouped]
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || b.id - a.id)
         .slice(0, 4);
-    
+
     const handleStatusUpdate = async (id, status) => {
         try {
             await api.post(`/appmt/update/${id}`, { status });
@@ -144,7 +171,7 @@ export default function FacultyDashboard() {
                             <div className="p-3 bg-amber-100 text-amber-700 rounded-lg">
                                 <Clock size={28} />
                             </div>
-                            <span className="text-4xl font-bold text-[#1F3A5F]">{facultyAppointments.filter(apt => apt.status === 'PENDING').length}</span>
+                            <span className="text-4xl font-bold text-[#1F3A5F]">{allPendingGrouped.length}</span>
                         </div>
                     </div>
                     <div className="rounded-xl border border-[#DCE3ED] bg-white p-5 shadow-sm">

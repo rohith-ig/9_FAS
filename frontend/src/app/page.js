@@ -1,7 +1,6 @@
 "use client"
 import React from "react";
 import { Inter } from "next/font/google";
-
 const inter = Inter({
   subsets: ["latin"],
 });
@@ -10,7 +9,7 @@ export default function FacultySchedulerHero() {
   const handleGoogleLogin = () => {
     console.log("Google login initiated");
     const clientId = "575078222055-4m6n7tq9mqssatseb92cs5qji8r8n5gn.apps.googleusercontent.com";
-    const redirectUri = "http://localhost:6969/api/auth/callback";
+    const redirectUri = process.env.NEXT_PUBLIC_BACKEND_URL + "/auth/callback";
     const link = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email profile`;
     window.location.href = link;
   };

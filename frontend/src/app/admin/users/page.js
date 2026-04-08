@@ -9,47 +9,47 @@ import { Plus, Pencil, Trash2, User, Search } from "lucide-react";
 export default function ManageAccountsPage() {
 
   const getTokenFromCookie = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; token=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; token=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
   };
 
   const [tab, setTab] = useState("STUDENT");
   const [search, setSearch] = useState("");
 
   const [users, setUsers] = useState([]);
-    useEffect(() => {
+  useEffect(() => {
     fetchUsers();
   }, []);
 
-const fetchUsers = async () => { 
-  try {
-    const token = getTokenFromCookie(); 
-    if (!token) return console.error("No token found, please log in!");
+  const fetchUsers = async () => {
+    try {
+      const token = getTokenFromCookie();
+      if (!token) return console.error("No token found, please log in!");
 
-    const res = await fetch("http://localhost:6969/api/users", {
-      headers: {
-        "Authorization": `Bearer ${token}`
+      const res = await fetch("http://localhost:6969/api/users", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      const data = await res.json();
+
+      // Safety check to prevent the "users.filter is not a function" error
+      if (Array.isArray(data)) {
+        setUsers(data);
+      } else {
+        console.error("Error fetching users:", data);
+        setUsers([]);
       }
-    }); 
-    
-    const data = await res.json(); 
-    
-    // Safety check to prevent the "users.filter is not a function" error
-    if (Array.isArray(data)) {
-      setUsers(data); 
-    } else {
-      console.error("Error fetching users:", data);
-      setUsers([]); 
+    } catch (error) {
+      console.error("Fetch error:", error);
+      setUsers([]);
     }
-  } catch (error) {
-    console.error("Fetch error:", error);
-    setUsers([]);
-  }
-};
+  };
 
-    const [newUser, setNewUser] = useState({
+  const [newUser, setNewUser] = useState({
     name: "",
     email: "",
     role: "STUDENT",
@@ -58,8 +58,8 @@ const fetchUsers = async () => {
     dept: "",
     location: "",
     subjects: "",
-    designation1:"",
-    });
+    designation1: "",
+  });
 
 
   const [editingUser, setEditingUser] = useState(null);
@@ -72,72 +72,72 @@ const fetchUsers = async () => {
       u.name.toLowerCase().includes(search.toLowerCase())
     );
 
-    // -----------------------------------------------------------------------
-const handleAddUser = async () => {
-  if (!newUser.name || !newUser.email) return;
-  const token = getTokenFromCookie(); 
-  const res = await fetch("http://localhost:6969/api/users/add", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      ...newUser,
-      role: tab,
-    })
-  });
+  // -----------------------------------------------------------------------
+  const handleAddUser = async () => {
+    if (!newUser.name || !newUser.email) return;
+    const token = getTokenFromCookie();
+    const res = await fetch("http://localhost:6969/api/users/add", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        ...newUser,
+        role: tab,
+      })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (data.success) {
-    setUsers([...users, data.user]);
+    if (data.success) {
+      setUsers([...users, data.user]);
 
-  }
-};
-//  ----------------------------------------------------------------------------
-
-
-const handleDelete = async (id) => {
-  const token = getTokenFromCookie();
-  await fetch(`http://localhost:6969/api/users/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Authorization": `Bearer ${token}` // Added the token header
-    },
-  });
-
-  setUsers(users.filter((u) => u.id !== id));
-};
+    }
+  };
+  //  ----------------------------------------------------------------------------
 
 
-const handleCSVUpload = async (e) => { 
-  const file = e.target.files[0]; 
-  if (!file) return;
+  const handleDelete = async (id) => {
+    const token = getTokenFromCookie();
+    await fetch(`http://localhost:6969/api/users/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}` // Added the token header
+      },
+    });
 
-  const token = getTokenFromCookie();
-  const formData = new FormData(); 
-  formData.append("file", file);
+    setUsers(users.filter((u) => u.id !== id));
+  };
 
-  const res = await fetch("http://localhost:6969/api/users/bulk-upload", { 
-    method: "POST", 
-    headers: { Authorization: `Bearer ${token}` }, 
-    body: formData, 
-  });
-  
-  const data = await res.json();
-  
-  if (data.success) { 
-    alert("Users uploaded successfully"); 
-    fetchUsers(); 
-  } else {
-    // Add an alert so you know if the backend rejected it!
-    alert("Failed to upload: " + data.error);
-  }
 
-  // ADD THIS LINE to reset the file input!
-  e.target.value = null; 
-};
+  const handleCSVUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const token = getTokenFromCookie();
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("http://localhost:6969/api/users/bulk-upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Users uploaded successfully");
+      fetchUsers();
+    } else {
+      // Add an alert so you know if the backend rejected it!
+      alert("Failed to upload: " + data.error);
+    }
+
+    // ADD THIS LINE to reset the file input!
+    e.target.value = null;
+  };
 
 
 
@@ -187,7 +187,7 @@ const handleEditSubmit = async (e) => {
       )
     );
   };
-// --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   return (
     <main className="min-h-screen bg-[#F7F9FC] px-6 py-10 flex justify-center font-[Inter]">
 
@@ -210,34 +210,33 @@ const handleEditSubmit = async (e) => {
 
             <button
               onClick={() => {
-                setTab("STUDENT"); 
-                setExpandedId(null); 
+                setTab("STUDENT");
+                setExpandedId(null);
                 setNewUser({
-                name: "",
-                email: "",
-                role: "STUDENT",
-                roll: "",
-                program: "",   //student program
-                dept: "",
-                location: "",
-                subjects: "",
-                designation1: "",   //faculty designation
+                  name: "",
+                  email: "",
+                  role: "STUDENT",
+                  roll: "",
+                  program: "",   //student program
+                  dept: "",
+                  location: "",
+                  subjects: "",
+                  designation1: "",   //faculty designation
                 });
               }}
-              
-              className={`px-4 py-1.5 text-sm rounded-md transition ${
-                tab === "STUDENT"
+
+              className={`px-4 py-1.5 text-sm rounded-md transition ${tab === "STUDENT"
                   ? "bg-[#1F3A5F] text-white"
                   : "text-[#2A4A75] hover:bg-[#F1F4F9]"
-              }`}
+                }`}
             >
               Students
             </button>
 
             <button
               onClick={() => {
-                setTab("FACULTY"); 
-                setExpandedId(null); 
+                setTab("FACULTY");
+                setExpandedId(null);
                 setNewUser({
                   name: "",
                   email: "",
@@ -251,11 +250,10 @@ const handleEditSubmit = async (e) => {
                 });
 
               }}
-              className={`px-4 py-1.5 text-sm rounded-md transition ${
-                tab === "FACULTY"
+              className={`px-4 py-1.5 text-sm rounded-md transition ${tab === "FACULTY"
                   ? "bg-[#1F3A5F] text-white"
                   : "text-[#2A4A75] hover:bg-[#F1F4F9]"
-              }`}
+                }`}
             >
               Faculty
             </button>
@@ -305,141 +303,141 @@ const handleEditSubmit = async (e) => {
         </div>
 
 
-     
-    {/* Add User */}
-    <div className="bg-white border border-[#E0E0E0] rounded-lg p-6 mb-8 shadow-sm transition hover:shadow-md">
 
-    {/* <h2 className="text-base font-semibold text-[#1F3A5F] mb-4">
+        {/* Add User */}
+        <div className="bg-white border border-[#E0E0E0] rounded-lg p-6 mb-8 shadow-sm transition hover:shadow-md">
+
+          {/* <h2 className="text-base font-semibold text-[#1F3A5F] mb-4">
         Add {tab}
     </h2> */}
 
-    {/* STUDENT FORM */}
-    {tab === "STUDENT" && (
-        <div className="grid md:grid-cols-2 gap-3">
+          {/* STUDENT FORM */}
+          {tab === "STUDENT" && (
+            <div className="grid md:grid-cols-2 gap-3">
 
 
-        <input
-            placeholder="Name"
-            value={newUser.name}
-            onChange={(e) =>
-            setNewUser({ ...newUser, name: e.target.value, role: "STUDENT" })
-            }
-            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        />
+              <input
+                placeholder="Name"
+                value={newUser.name}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, name: e.target.value, role: "STUDENT" })
+                }
+                className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+              />
 
-        <input
-            placeholder="Roll Number"
-            value={newUser.roll}
-            onChange={(e) =>
-            setNewUser({ ...newUser, roll: e.target.value })
-            }
-            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        />
+              <input
+                placeholder="Roll Number"
+                value={newUser.roll}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, roll: e.target.value })
+                }
+                className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+              />
 
-        <input
-            placeholder="Email"
-            value={newUser.email}
-            onChange={(e) =>
-            setNewUser({ ...newUser, email: e.target.value })
-            }
-            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        />
+              <input
+                placeholder="Email"
+                value={newUser.email}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, email: e.target.value })
+                }
+                className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+              />
 
-        <select
-            value={newUser.program}
-            onChange={(e) =>
-            setNewUser({ ...newUser, program: e.target.value })
-            }
-            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        >
-            <option value="">Program</option>
-            <option>B.Tech.</option>
-            <option>M.Tech.</option>
-            <option>Ph.D.</option>
-        </select>
+              <select
+                value={newUser.program}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, program: e.target.value })
+                }
+                className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+              >
+                <option value="">Program</option>
+                <option>B.Tech.</option>
+                <option>M.Tech.</option>
+                <option>Ph.D.</option>
+              </select>
 
-        <select
-            value={newUser.dept}
-            onChange={(e) =>
-            setNewUser({ ...newUser, dept: e.target.value })
-            }
-            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        >
-            <option value="">Department</option>
-            <option>AR</option>
-            <option>BT</option>
-            <option>CE</option>
-            <option>CH</option>
-            <option>CS</option>
-            <option>EC</option>
-            <option>EE</option>
-            <option>EP</option>
-            <option>ME</option>
-            <option>MT</option>
-            <option>PE</option>
-        </select>
+              <select
+                value={newUser.dept}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, dept: e.target.value })
+                }
+                className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+              >
+                <option value="">Department</option>
+                <option>AR</option>
+                <option>BT</option>
+                <option>CE</option>
+                <option>CH</option>
+                <option>CS</option>
+                <option>EC</option>
+                <option>EE</option>
+                <option>EP</option>
+                <option>ME</option>
+                <option>MT</option>
+                <option>PE</option>
+              </select>
 
-        </div>
-    )}
+            </div>
+          )}
 
-    {/* FACULTY FORM */}
-    {tab === "FACULTY" && (
-        <div className="grid md:grid-cols-2 gap-3">
+          {/* FACULTY FORM */}
+          {tab === "FACULTY" && (
+            <div className="grid md:grid-cols-2 gap-3">
 
-        <input
-            placeholder="Name"
-            value={newUser.name}
-            onChange={(e) =>
-            setNewUser({ ...newUser, name: e.target.value, role: "FACULTY" })
-            }
-            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        />
+              <input
+                placeholder="Name"
+                value={newUser.name}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, name: e.target.value, role: "FACULTY" })
+                }
+                className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+              />
 
-        <input
-            placeholder="Email"
-            value={newUser.email}
-            onChange={(e) =>
-            setNewUser({ ...newUser, email: e.target.value })
-            }
-            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        />
+              <input
+                placeholder="Email"
+                value={newUser.email}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, email: e.target.value })
+                }
+                className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+              />
 
-       <select
-            value={newUser.dept}
-            onChange={(e) =>
-            setNewUser({ ...newUser, dept: e.target.value })
-            }
-            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        >
-            <option value="">Department</option>
-            <option>AR</option>
-            <option>BT</option>
-            <option>CE</option>
-            <option>CH</option>
-            <option>CS</option>
-            <option>EC</option>
-            <option>EE</option>
-            <option>EP</option>
-            <option>ME</option>
-            <option>MT</option>
-            <option>PE</option>
-        </select>
+              <select
+                value={newUser.dept}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, dept: e.target.value })
+                }
+                className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+              >
+                <option value="">Department</option>
+                <option>AR</option>
+                <option>BT</option>
+                <option>CE</option>
+                <option>CH</option>
+                <option>CS</option>
+                <option>EC</option>
+                <option>EE</option>
+                <option>EP</option>
+                <option>ME</option>
+                <option>MT</option>
+                <option>PE</option>
+              </select>
 
 
-        <select
-            value={newUser.designation1}
-            onChange={(e) =>
-            setNewUser({ ...newUser, designation1: e.target.value })
-            }
-            className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
-        >
-            <option value="">Designation</option>
-            <option>Professor</option>
-            <option>Associate Professor</option>
-            <option>Assistant Professor</option>
-        </select>
+              <select
+                value={newUser.designation1}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, designation1: e.target.value })
+                }
+                className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
+              >
+                <option value="">Designation</option>
+                <option>Professor</option>
+                <option>Associate Professor</option>
+                <option>Assistant Professor</option>
+              </select>
 
-        {/* <input
+              {/* <input
             placeholder="Location"
             value={newUser.location}
             onChange={(e) =>
@@ -448,7 +446,7 @@ const handleEditSubmit = async (e) => {
             className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm"
         /> */}
 
-        {/* <input
+              {/* <input
             placeholder="Subjects (comma separated)"
             value={newUser.subjects}
             onChange={(e) =>
@@ -457,169 +455,147 @@ const handleEditSubmit = async (e) => {
             className="border border-[#E0E0E0] rounded-md px-3 py-2 text-sm md:col-span-2"
         /> */}
 
+            </div>
+          )}
+
+          <button
+            onClick={handleAddUser}
+            className="mt-4 flex items-center gap-2 bg-[#1F3A5F] text-white px-4 py-2 rounded-md text-sm hover:bg-[#2A4A75]"
+          >
+            <Plus size={16} />
+            Add {tab}
+          </button>
+
         </div>
-    )}
-
-  <button
-    onClick={handleAddUser}
-    className="mt-4 flex items-center gap-2 bg-[#1F3A5F] text-white px-4 py-2 rounded-md text-sm hover:bg-[#2A4A75]"
-  >
-    <Plus size={16} />
-    Add {tab}
-  </button>
-
-</div>
 
 
 
         {/* Table Card */}
         <div className="bg-white border border-[#E0E0E0] rounded-lg shadow-sm overflow-hidden">
 
- {/* Table Card */}
-<div className="bg-white border border-[#E0E0E0] rounded-lg shadow-sm overflow-hidden">
+          {/* Table Card */}
+          <div className="bg-white border border-[#E0E0E0] rounded-lg shadow-sm overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-[#F7F9FC] border-b border-[#E0E0E0] text-[#2A4A75]">
+                <tr>
+                  <th className="text-left p-4 font-medium">User</th>
+                  {tab === "STUDENT" && <th className="text-left font-medium">Roll Number</th>}
+                  <th className="text-left font-medium">Email</th>
+                  {tab === "STUDENT" && <th className="text-left font-medium">Program</th>}
+                  <th className="text-left font-medium">Department</th>
+                  <th className="text-center font-medium w-[90px]">Edit</th>
+                  <th className="text-center font-medium w-[90px]">Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={tab === "STUDENT" ? "7" : "5"} className="text-center p-6 text-[#5A6C7D]">
+                      No users found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <React.Fragment key={user.id}>
+                      <tr 
+                        className={`border-b border-[#E0E0E0] hover:bg-[#F3F6FA] transition cursor-pointer ${expandedId === user.id ? 'bg-[#EEF3FA]' : ''}`}
+                        onClick={() => setExpandedId(expandedId === user.id ? null : user.id)}
+                      >
+                        {/* Name */}
+                        <td className="p-4 flex items-center gap-2 text-[#1F3A5F]">
+                          <User size={16} className="text-[#4A6FA5]" />
+                          {user.name}
+                        </td>
 
-  <table className="w-full text-sm">
+                        {/* Roll */}
+                        {tab === "STUDENT" && (
+                          <td className="text-[#2A4A75] p-4">{user.studentProfile?.rollNumber || "-"}</td>
+                        )}
 
-    <thead className="bg-[#F7F9FC] border-b border-[#E0E0E0] text-[#2A4A75]">
-      <tr>
+                        {/* Email */}
+                        <td className="text-[#2A4A75] p-4">{user.email}</td>
 
-        <th className="text-left p-4 font-medium">User</th>
+                        {/* Program */}
+                        {tab === "STUDENT" && (
+                          <td className="text-[#2A4A75] p-4">{user.studentProfile?.designation || "-"}</td>
+                        )}
 
-        {tab === "STUDENT" && (
-          <th className="text-left font-medium">Roll Number</th>
-        )}
-        
+                        {/* Department */}
+                        <td className="text-[#2A4A75] p-4">
+                          {tab === "STUDENT" ? (user.studentProfile?.department || "-") : (user.facultyProfile?.department || "-")}
+                        </td>
 
-        <th className="text-left font-medium">Email</th>
+                        {/* Edit */}
+                        <td className="text-center p-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(user.id);
+                            }}
+                            className="p-2 rounded-md hover:bg-[#EEF3FA]"
+                          >
+                            <Pencil size={16} className="text-[#4A6FA5]" />
+                          </button>
+                        </td>
 
-        {tab === "STUDENT" && (
-          <th className="text-left font-medium">Program</th>
-        )}
-
-        {/* {tab === "STUDENT" && (
-          <th className="text-left font-medium">Department</th>
-        )} */}
-        <th className="text-left font-medium">Department</th>
-        <th className="text-center font-medium w-[90px]">Edit</th>
-        <th className="text-center font-medium w-[90px]">Delete</th>
-
-      </tr>
-    </thead>
-
-    
- {/* ----------- */}
-    <tbody>
-
-    {filteredUsers.map((user) => (
-    <React.Fragment key={user.id}>
-
-
-        {/* MAIN ROW */}
-        <tr
-          key={user.id}
-          onClick={() => {
-            if (tab === "FACULTY") {
-              setExpandedId(expandedId === user.id ? null : user.id);
-            }
-          }}
-          >
-
-        {/* Name */}
-        <td className="p-4 flex items-center gap-2 text-[#1F3A5F]">
-            <User size={16} className="text-[#4A6FA5]" />
-            {user.name}
-        </td>
-
-        {/* Roll */}
-        {tab === "STUDENT" && (
-            <td className="text-[#2A4A75]">{user.studentProfile?.rollNumber}</td>
-        )}
-
-        {/* Email */}
-        <td className="text-[#2A4A75]">{user.email}</td>
-
-        {tab === "STUDENT" && (
-            <td className="text-[#2A4A75]">{user.studentProfile?.designation}</td>
-        )}
-
-        <td className="text-[#2A4A75]">
-          {user.studentProfile?.department || user.facultyProfile?.department}
-        </td>
-
-
-
-        {/* Edit */}
-        <td className="text-center">
-            <button
-            onClick={(e) => {
-                e.stopPropagation();
-                setEditingUser(user);
-            }}
-            className="p-2 rounded-md hover:bg-[#EEF3FA]"
-            >
-            <Pencil size={16} className="text-[#4A6FA5]" />
-            </button>
-        </td>
-
-        {/* Delete */}
-        <td className="text-center">
-            <button
-            onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(user.id);
-            }}
-            className="p-2 rounded-md hover:bg-[#FBEAEA]"
-            >
-            <Trash2 size={16} className="text-red-500" />
-            </button>
-        </td>
-
-        </tr>
+                        {/* Delete */}
+                        <td className="text-center p-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(user.id);
+                            }}
+                            className="p-2 rounded-md hover:bg-[#FBEAEA]"
+                          >
+                            <Trash2 size={16} className="text-red-500" />
+                          </button>
+                        </td>
+                      </tr>
 
 
-        {/* EXPANDED DETAILS ROW */}
-        {tab==="FACULTY" && expandedId === user.id && (
-        <tr className="bg-[#F9FBFE]">
+                    {/* EXPANDED DETAILS ROW */}
+                    {tab === "FACULTY" && expandedId === user.id && (
+                      <tr className="bg-[#F9FBFE]">
 
-            <td
-            colSpan={tab === "STUDENT" ? 5 : 4}
-            className="px-6 py-4 text-sm text-[#2A4A75]"
-            >
-
-
-            {tab === "FACULTY" && (
-                <div className="flex flex-col gap-2">
+                        <td
+                          colSpan={tab === "STUDENT" ? 5 : 4}
+                          className="px-6 py-4 text-sm text-[#2A4A75]"
+                        >
 
 
-                <div>
-                    <span className="font-medium">Location:</span> {user.location || "-"}
-                </div>
+                          {tab === "FACULTY" && (
+                            <div className="flex flex-col gap-2">
 
-                <div>
-                    <span className="font-medium">Subjects:</span> {user.subjects || "-"}
-                </div>
+                              <div>
+                                <span className="font-medium">Department:</span> {user.department || "-"}
+                              </div>
 
-                </div>
-            )}
+                              <div>
+                                <span className="font-medium">Location:</span> {user.location || "-"}
+                              </div>
 
-            </td>
+                              <div>
+                                <span className="font-medium">Subjects:</span> {user.subjects || "-"}
+                              </div>
 
-        </tr>
-        )}
+                            </div>
+                          )}
 
-    </React.Fragment>
+                        </td>
 
-    ))}
+                      </tr>
+                    )}
+                  </React.Fragment>
+                )))}
+              </tbody>
 
-    </tbody>
+
+              {/* ----------------------- */}
 
 
-    {/* ----------------------- */}
+            </table>
 
-
-  </table>
-
-</div>
+          </div>
 
 
         </div>
