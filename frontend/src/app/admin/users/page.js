@@ -128,7 +128,26 @@ export default function ManageAccountsPage() {
     const data = await res.json();
 
     if (data.success) {
-      alert("Users uploaded successfully");
+      if (data.report && data.report.failedCount > 0) {
+        let reportMsg = `Upload completed with some errors.\n`;
+        reportMsg += `Successfully added: ${data.report.successCount}\n`;
+        reportMsg += `Failed to add: ${data.report.failedCount}\n\n`;
+        reportMsg += `Failed Rows:\n`;
+        
+        // Show up to 10 errors to avoid massive alerts
+        const errorsToShow = data.report.failedRows.slice(0, 10);
+        errorsToShow.forEach(err => {
+          reportMsg += `Row ${err.row} (${err.email}): ${err.reason}\n`;
+        });
+        
+        if (data.report.failedCount > 10) {
+          reportMsg += `...and ${data.report.failedCount - 10} more.`;
+        }
+        
+        alert(reportMsg);
+      } else {
+        alert("All users uploaded successfully!");
+      }
       fetchUsers();
     } else {
       // Add an alert so you know if the backend rejected it!
@@ -142,6 +161,17 @@ export default function ManageAccountsPage() {
 
 
 //-----------------------------------------------------------------------
+const handleEdit = (id) => {
+  const userToEdit = users.find((u) => u.id === id);
+
+  if (!userToEdit) {
+    console.error("User not found:", id);
+    return;
+  }
+
+  setEditingUser(userToEdit);
+};
+
 const handleEditSubmit = async (e) => {
   e.preventDefault();
   const token = getTokenFromCookie();
@@ -176,9 +206,9 @@ const handleEditSubmit = async (e) => {
 
 //------------------------------------------------------------------------------------
 
-  const handleSave = () => {
-    setEditingId(null);
-  };
+const handleSave = () => {
+  setEditingUser(null);
+};
 
   const handleChange = (id, field, value) => {
     setUsers(
