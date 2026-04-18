@@ -1,0 +1,4 @@
+name,email,role,department,designation
+Dr. Alan Turing,alan.turing@example.com,FACULTY,Computer Science,Professor
+Dr. Grace Hopper,grace.hopper@example.com,FACULTY,Computer Science,Associate Professor
+Dr. Nikola Tesla,nikola.tesla@example.com,FACULTY,Electrical Engineering,Assistant Professor

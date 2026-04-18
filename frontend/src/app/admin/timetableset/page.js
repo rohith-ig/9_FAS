@@ -4,12 +4,6 @@ import api from "../../../axios";
 
 const headingColor = "text-[#2A4A75]";
 
-<<<<<<< HEAD
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
-import api from "../../axios";
-
-=======
->>>>>>> 50241d0 (fixed bug with using axios instead of fetch)
 const days = ["Mon","Tue","Wed","Thu","Fri"];
 
 const times = [
