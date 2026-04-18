@@ -103,7 +103,7 @@ export default function ManageRequests() {
       <div className="max-w-6xl mx-auto px-6 md:px-10 py-12 relative z-10">
 
         {/* Page Heading */}
-        <Toaster position="top-center" />
+        <Toaster position="bottom-right" />
         <div className="mb-10">
           <h2 className="text-3xl font-semibold text-[#1F3A5F] mb-2">Appointment Request</h2>
 
@@ -253,8 +253,8 @@ export default function ManageRequests() {
 
       {/* Cancel Modal */}
       {showCancelModal && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center p-4 z-20 animate-fade">
-          <div className="bg-white border border-[#E0E0E0] rounded-xl p-8 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[100] animate-fade">
+          <div className="bg-white border border-[#E0E0E0] rounded-xl p-8 w-full max-w-md shadow-2xl">
             <h3 className="text-xl font-semibold text-[#1F3A5F] mb-4">Cancel Appointment</h3>
 
             <label className="text-sm text-gray-600 block mb-2">
@@ -263,7 +263,7 @@ export default function ManageRequests() {
 
             <textarea
               placeholder="Explain why you are cancelling this appointment..."
-              className="w-full border border-[#E0E0E0] rounded-lg p-3 text-base mb-6"
+              className="w-full border border-[#E0E0E0] rounded-lg p-3 text-base mb-6 outline-none focus:border-red-400"
             />
 
             <div className="flex gap-3 justify-end">

@@ -234,6 +234,7 @@ const updateAppointmentStatus = async (req, res) => {
         }
         const appointment = await prisma.appointmentRequest.findUnique({
             where: { id: Number(id) },
+            include: { student: { include: { user: true } }, faculty: { include: { user: true } } }
         });
         if (!appointment || appointment.facultyId !== req.user.facultyProfile.id) {
             return res.status(404).json({ error: 'Appointment request not found' });
@@ -248,19 +249,26 @@ const updateAppointmentStatus = async (req, res) => {
             if (status !== 'CANCELLED') {
                 return res.status(400).json({error : 'This appointment is confirmed and can only be cancelled'});
             }
+            let successResult;
             if (cancelSeries && appointment.recurrenceId) {
-                const update = await prisma.appointmentRequest.updateMany({
+                successResult = await prisma.appointmentRequest.updateMany({
                     where : { recurrenceId: appointment.recurrenceId, status: 'APPROVED', start: { gte: appointment.start } },
                     data: {status : status, cancellationNote: cancel}
                 });
-                return res.json({success: update});
             } else {
-                const update = await prisma.appointmentRequest.update({
+                successResult = await prisma.appointmentRequest.update({
                     where : {id : Number(id)},
                     data: {status : status, cancellationNote: cancel}
                 });
-                return res.json({success:update})
             }
+            if (cancel) {
+                sendEmail({
+                    to: appointment.student.user.email,
+                    subject: `Appointment Cancelled`,
+                    html: `<h2>Appointment Cancelled ❌</h2><p>Your appointment with <strong>${appointment.faculty.user.name}</strong> was cancelled.</p><p><strong>Reason:</strong> ${cancel}</p>`
+                }).catch(console.error);
+            }
+            return res.json({success: successResult});
         }
         if (appointment.status === 'PENDING') {
             if (status === 'APPROVED' || status === 'REJECTED') {
@@ -305,6 +313,13 @@ const updateAppointmentStatus = async (req, res) => {
                                 cancellationNote: "This appointment was automatically rejected because the time slot was taken."
                             }
                         });
+                    }
+                    if (status === 'REJECTED' && cancel) {
+                        sendEmail({
+                            to: appointment.student.user.email,
+                            subject: `Appointment Rejected`,
+                            html: `<h2>Appointment Rejected ❌</h2><p>Your appointment with <strong>${appointment.faculty.user.name}</strong> was rejected.</p><p><strong>Reason:</strong> ${cancel}</p>`
+                        }).catch(console.error);
                     }
                     return res.json(updateMain);
                 }
@@ -376,11 +391,13 @@ const addGroupMember = async (req,res) => {
 const requestReschedule = async (req, res) => {
     try {
         const { id } = req.params;
+        const { note } = req.body;
         if (req.user.role !== 'FACULTY') {
             return res.status(403).json({ error: 'Only faculty members can request appointment rescheduling' });
         }
         const appointment = await prisma.appointmentRequest.findUnique({
             where: { id: Number(id) },
+            include: { student: { include: { user: true } }, faculty: { include: { user: true } } }
         });
         if (!appointment || appointment.facultyId !== req.user.facultyProfile.id) {
             return res.status(404).json({ error: 'Appointment request not found' });
@@ -391,8 +408,16 @@ const requestReschedule = async (req, res) => {
         
         const update = await prisma.appointmentRequest.update({
             where: { id: Number(id) },
-            data: { rescheduleRequested: true, status: 'PENDING' }
+            data: { rescheduleRequested: true, status: 'PENDING', cancellationNote: note }
         });
+        
+        if (note) {
+            sendEmail({
+                to: appointment.student.user.email,
+                subject: `Reschedule Requested`,
+                html: `<h2>Reschedule Requested 📅</h2><p>Faculty <strong>${appointment.faculty.user.name}</strong> has requested to reschedule.</p><p><strong>Note:</strong> ${note}</p>`
+            }).catch(console.error);
+        }
         
         res.json({ success: true, update });
     } catch (e) {

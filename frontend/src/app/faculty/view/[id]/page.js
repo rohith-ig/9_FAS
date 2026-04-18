@@ -88,7 +88,7 @@ export default function FacultyAppointmentDetail() {
   const handleRescheduleNotification = async () => {
     setUpdating(true);
     try {
-      await api.post(`/appmt/requestReschedule/${id}`);
+      await api.post(`/appmt/requestReschedule/${id}`, { note: cancelNote });
       toast.success("Reschedule request sent successfully.");
       await fetchAppointmentDetails();
     } catch (error) {
