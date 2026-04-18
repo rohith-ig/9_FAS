@@ -135,57 +135,72 @@ exports.bulkUploadUsers = async (req, res) => {
       .pipe(csv())
       .on('data', (data) => results.push(data))
       .on('end', async () => {
-        try {
-          for (const row of results) {
-  if (!row.name || !row.email) continue; 
+        const successRows = [];
+        const failedRows = [];
 
-  // Dynamically grab the role from the CSV (default to STUDENT if blank)
-  const userRole =
-    row.role && row.role.toUpperCase() === "FACULTY"
-      ? "FACULTY"
-      : "STUDENT";
+        for (let i = 0; i < results.length; i++) {
+          const row = results[i];
+          const rowNumber = i + 2; // +1 for 0-index, +1 for header row
 
-  await prisma.user.create({
-    data: {
-      name: row.name, 
-      email: row.email,
-      role: userRole,
-      profilePic: "",
+          if (!row.name || !row.email) {
+            failedRows.push({ row: rowNumber, email: row.email || 'N/A', reason: "Missing name or email" });
+            continue;
+          }
 
-      // If STUDENT → create studentProfile
-      ...(userRole === "STUDENT" && {
-        studentProfile: {
-          create: {
-            rollNumber: row.rollNumber || "",
-            department: row.department || "",
-            designation: row.program || "",   // keep this since your schema uses it
+          const userRole = row.role && row.role.toUpperCase() === "FACULTY" ? "FACULTY" : "STUDENT";
+
+          try {
+            await prisma.user.create({
+              data: {
+                name: row.name, 
+                email: row.email,
+                role: userRole,
+                profilePic: "",
+                ...(userRole === "STUDENT" && {
+                  studentProfile: {
+                    create: {
+                      rollNumber: row.rollNumber || "",
+                      department: row.department || "",
+                      designation: row.program || "",
+                    }
+                  }
+                }),
+                ...(userRole === "FACULTY" && {
+                  facultyProfile: {
+                    create: {
+                      department: row.department || "",
+                      designation: row.designation || "",
+                    }
+                  }
+                })
+              }
+            });
+            successRows.push(row.email);
+          } catch (dbError) {
+            let reason = "Database error";
+            if (dbError.code === 'P2002') {
+              const target = dbError.meta?.target;
+              reason = `Duplicate entry${target ? ` for ${target}` : ''}`;
+            } else {
+              console.error(`Error inserting row ${rowNumber}:`, dbError);
+            }
+            failedRows.push({ row: rowNumber, email: row.email, reason });
           }
         }
-      }),
 
-      // If FACULTY → create facultyProfile
-      ...(userRole === "FACULTY" && {
-        facultyProfile: {
-          create: {
-            department: row.department || "",
-            designation: row.designation || "",
+        // Delete the temporary file
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+
+        res.status(200).json({ 
+          success: true, 
+          message: "Upload process completed",
+          report: {
+            totalProcessed: results.length,
+            successCount: successRows.length,
+            failedCount: failedRows.length,
+            failedRows: failedRows
           }
-        }
-      })
-    }
-  });
-}
-
-          // Delete the temporary file created by Multer
-          fs.unlinkSync(req.file.path);
-
-          // Send the success response so your frontend refreshes!
-          res.json({ success: true, message: "Users uploaded successfully" });
-
-        } catch (dbError) {
-          console.error("Database error:", dbError);
-          res.status(500).json({ error: "Error saving records to database" });
-        }
+        });
       });
 
   } catch (err) { 

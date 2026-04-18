@@ -1,0 +1,4 @@
+name,email,role,rollNumber,department,program
+John Doe,john.doe@example.com,STUDENT,CS23001,Computer Science,B.Tech
+Jane Smith,jane.smith@example.com,STUDENT,CS23002,Computer Science,B.Tech
+Alice Johnson,alice.j@example.com,STUDENT,EE23001,Electrical Engineering,M.Tech

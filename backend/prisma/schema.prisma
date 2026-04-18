@@ -16,9 +16,9 @@ model User {
   updatedAt      DateTime        @updatedAt
   profilePic     String
   facultyProfile FacultyProfile?
+  notifications  Notification[]
   studentProfile StudentProfile?
   tickets        Ticket[]
-  notifications  Notification[]
 }
 
 model StudentProfile {
@@ -38,9 +38,9 @@ model FacultyProfile {
   department          String
   designation         String
   appointmentRequests AppointmentRequest[]
+  busyblocks          Busyblocks[]
   availabilities      FacultyAvailability[]
   user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  busyblocks          Busyblocks[]
 }
 
 model AppointmentRequest {
@@ -57,9 +57,8 @@ model AppointmentRequest {
   cancellationNote String?
   capacity         Int
   isGroup          Boolean            @default(false)
-  rescheduleRequested Boolean         @default(false)
-  recurrenceId     String?            
-  recurrenceRule   String?            
+  recurrenceId     String?
+  recurrenceRule   String?
   faculty          FacultyProfile     @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   student          StudentProfile     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   students         AppointmentUsers[]
@@ -90,6 +89,25 @@ model Timetable {
   time        String
 }
 
+model Busyblocks {
+  id        Int            @id @default(autoincrement())
+  facultyId Int
+  start     DateTime
+  end       DateTime
+  faculty   FacultyProfile @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+}
+
+model Ticket {
+  id           Int      @id @default(autoincrement())
+  topic        String
+  description  String?
+  ticketStatus TSVAL    @default(OPEN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+}
+
 model Notification {
   id        String   @id @default(uuid())
   userId    Int
@@ -99,14 +117,6 @@ model Notification {
   createdAt DateTime @default(now())
   link      String?
   user      User     @relation(fields: [userId], references: [id])
-}
-
-model Busyblocks {
-  id        Int            @id @default(autoincrement())
-  facultyId Int
-  start     DateTime
-  end       DateTime
-  faculty   FacultyProfile @relation(fields: [facultyId], references: [id], onDelete: Cascade)
 }
 
 enum Status {
@@ -122,40 +132,7 @@ enum Role {
   STUDENT
 }
 
-model Ticket {
-  id          Int     @id @default(autoincrement())
-  topic       String // Matches: "Unable to book appointment" [1]
-  description String? // add this (admin page needs it)
-
-  ticketStatus TSVAL    @default(OPEN)
-  createdAt    DateTime @default(now()) // Matches the "date" field [1]
-  updatedAt    DateTime @updatedAt
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
-}
-
 enum TSVAL {
   OPEN
   RESOLVED
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  userId    Int
-  title     String
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  link      String?
-  user User @relation(fields: [userId], references: [id])
-}
-
-model BackupLog {
-  id        Int      @id @default(autoincrement())
-  status    String   @default("SUCCESS") // Can be "SUCCESS" or "FAILED"
-  createdAt DateTime @default(now())
-
-  // Relation to know which Admin created the backup
-  //admin     User     @relation(fields: [adminId], references: [id])
 }

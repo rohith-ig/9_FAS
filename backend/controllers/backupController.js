@@ -29,6 +29,6 @@ exports.generateBackup = async (req, res) => {
   } catch (err) { 
     console.error("Backup error:", err); 
     // This is the error message you saw in your console!
-    res.status(500).json({ error: "Failed to generate backup file" }); 
+    res.status(500).json({ error: "Failed to generate backup file", details: err.message }); 
   } 
 };
