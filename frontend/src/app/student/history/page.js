@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Calendar, Clock, ChevronRight, Filter, Loader2 } from "lucide-react";
+import { Calendar, Clock, ChevronRight, Filter, Loader2, Video } from "lucide-react";
 import api from "../../../axios";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -35,6 +35,8 @@ export default function StudentHistoryPage() {
                         startRaw: apt.start,
                         capacity: apt.capacity || 1,
                         students: apt.students || [],
+                        isOnline: apt.isOnline || false,
+                        meetingLink: apt.meetingLink || null,
                         recurrenceId: apt.recurrenceId,
                         recurrenceRule: apt.recurrenceRule
                     };
@@ -256,12 +258,23 @@ export default function StudentHistoryPage() {
 
                                         <p className="text-sm text-[#5A6C7D] flex flex-wrap items-center gap-2 mt-1">
                                             <span className="flex items-center gap-1"><Clock size={14} /> {apt.time} • {apt.type}</span>
+                                            {apt.isOnline && (
+                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1">
+                                                    <Video size={10} /> Online
+                                                </span>
+                                            )}
                                             {apt.isGroupedSeries && (
                                                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-1 ml-1">
                                                     ⟳ {apt.recurrenceRule} ({apt.seriesCount}x)
                                                 </span>
                                             )}
                                         </p>
+
+                                        {apt.isOnline && apt.meetingLink && apt.status === 'Confirmed' && (
+                                            <a href={apt.meetingLink} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md transition">
+                                                <Video size={12} /> Join Meeting
+                                            </a>
+                                        )}
 
                                         {(apt.status === "Cancelled" || apt.status === "Rejected") && apt.cancellationNote && apt.cancellationNote !== "Cancelled by student" && (
                                             <div className="mt-2.5 bg-rose-50 border border-rose-100 rounded-md p-2.5 max-w-sm">

@@ -7,6 +7,7 @@ import {
     MessageSquareWarning,
     ArrowRight,
     Settings,
+    Video
 } from "lucide-react";
 import api from "../../axios";
 import { useEffect, useState, useCallback, useContext } from "react";
@@ -181,7 +182,14 @@ export default function FacultyDashboard() {
                                 <CalendarClock size={28} />
                             </div>
                             <span className="text-4xl font-bold text-[#1F3A5F]">
-                                {facultyAppointments.filter(apt => apt.status === 'Confirmed').length}
+                                {facultyAppointments.filter(apt => {
+                                    const today = new Date();
+                                    const start = new Date(apt.start);
+                                    return apt.status === 'APPROVED' &&
+                                        start.getFullYear() === today.getFullYear() &&
+                                        start.getMonth() === today.getMonth() &&
+                                        start.getDate() === today.getDate();
+                                }).length}
                             </span>
                         </div>
                     </div>
@@ -205,19 +213,35 @@ export default function FacultyDashboard() {
                                                     <span className="block text-lg font-bold text-[#1F3A5F]">{new Date(apt.start).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-semibold text-[#1F3A5F] text-lg">{apt.students[0].student.user.name} <span className="text-sm font-normal text-[#5A6C7D]">({apt.students[0].student.rollNumber})</span></h4>
+                                                    <h4 className="font-semibold text-[#1F3A5F] text-lg flex items-center gap-2">
+                                                        {apt.students[0].student.user.name}
+                                                        <span className="text-sm font-normal text-[#5A6C7D]">({apt.students[0].student.rollNumber})</span>
+                                                        {apt.isOnline && (
+                                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1">
+                                                                <Video size={10} /> Online
+                                                            </span>
+                                                        )}
+                                                    </h4>
                                                     <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
                                                         <Clock size={14} /> {new Date(apt.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {apt.purpose}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <button onClick={() => handleStatusUpdate(apt.id, 'APPROVED')} className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 px-4 py-2 rounded-md text-sm font-semibold transition cursor-pointer shadow-sm">
-                                                    Approve
-                                                </button>
-                                                <button onClick={() => handleStatusUpdate(apt.id, 'REJECTED')} className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-4 py-2 rounded-md text-sm font-semibold transition cursor-pointer shadow-sm">
-                                                    Reject
-                                                </button>
+                                                {apt.isOnline ? (
+                                                    <Link href={`/faculty/view/${apt.id}`} className="bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-4 py-2 rounded-md text-sm font-semibold transition cursor-pointer shadow-sm flex items-center gap-1.5">
+                                                        <Video size={14} /> Add Link & Approve
+                                                    </Link>
+                                                ) : (
+                                                    <>
+                                                        <button onClick={() => handleStatusUpdate(apt.id, 'APPROVED')} className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 px-4 py-2 rounded-md text-sm font-semibold transition cursor-pointer shadow-sm">
+                                                            Approve
+                                                        </button>
+                                                        <button onClick={() => handleStatusUpdate(apt.id, 'REJECTED')} className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-4 py-2 rounded-md text-sm font-semibold transition cursor-pointer shadow-sm">
+                                                            Reject
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </li>
                                     ))}
