@@ -1,11 +1,12 @@
 const prisma = require('../config/database');
 
-const createNotification = async ({ userId, title, message }) => {
+const createNotification = async ({ userId, title, message, link }) => {
   return await prisma.notification.create({
     data: {
       userId,
       title,
-      message
+      message,
+      link
     }
   });
 };
