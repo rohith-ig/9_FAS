@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import api from "../../../../axios";
-import { Loader2, ArrowLeft, Calendar, Clock, CheckCircle2, User, BookOpen, Clock3, MessageSquare } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar, Clock, CheckCircle2, User, BookOpen, Clock3, MessageSquare, Video } from "lucide-react";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -27,6 +27,7 @@ export default function BookAppointmentPage() {
   const [isRecurringMeeting, setIsRecurringMeeting] = useState(false);
   const [recurrenceRule, setRecurrenceRule] = useState("WEEKLY");
   const [recurringEndDate, setRecurringEndDate] = useState("");
+  const [isOnline, setIsOnline] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -88,7 +89,8 @@ export default function BookAppointmentPage() {
             capacity: parseInt(capacity),
             isGroup: isGroupMeeting,
             recurrenceRule: isRecurringMeeting ? recurrenceRule : undefined,
-            recurringEndDate: isRecurringMeeting && recurringEndDate ? new Date(recurringEndDate).toISOString() : undefined
+            recurringEndDate: isRecurringMeeting && recurringEndDate ? new Date(recurringEndDate).toISOString() : undefined,
+            isOnline
         };
         await api.post('/appmt', payload);
         if (oldId) {
@@ -296,6 +298,18 @@ export default function BookAppointmentPage() {
                                placeholder="e.g., Project clarification, Assignment doubt"
                                className="w-full rounded-md border border-[#DCE3ED] bg-white px-3 py-2 text-sm text-[#1F3A5F] outline-none focus:border-[#4A6FA5] focus:ring-1 focus:ring-[#4A6FA5] transition shadow-sm disabled:opacity-50 disabled:bg-gray-50"
                            />
+                       </div>
+
+                       <div>
+                           <label className="block text-sm font-bold text-[#1F3A5F] mb-1.5 flex items-center gap-1.5">
+                               <Video size={14} className="text-[#4A6FA5]" /> Meeting Mode
+                           </label>
+                           <label className={`flex items-center justify-center gap-2 p-2 border rounded-md font-semibold cursor-pointer transition w-full ${
+                               isOnline ? 'bg-[#4A6FA5] text-white border-[#4A6FA5]' : 'bg-white text-[#4A6FA5] border-[#DCE3ED] hover:bg-[#F4F7FB]'
+                           } ${!selectedSlot ? 'opacity-50 pointer-events-none' : ''}`}>
+                               <input type="checkbox" checked={isOnline} onChange={(e) => setIsOnline(e.target.checked)} className="sr-only" disabled={!selectedSlot} />
+                               {isOnline ? '🔗 Online Meeting (link will be shared on approval)' : 'In-Person Meeting'}
+                           </label>
                        </div>
 
                        <div>

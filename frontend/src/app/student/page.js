@@ -9,7 +9,8 @@ import {
     Clock,
     MessageSquareWarning,
     ArrowRight,
-    Loader2
+    Loader2,
+    Video
 } from "lucide-react";
 
 const quickActions = [
@@ -155,7 +156,14 @@ export default function StudentDashboard() {
                                             <span className="block text-[15px] font-bold text-[#1F3A5F]">{timeString}</span>
                                         </div>
                                         <div>
-                                            <h4 className="font-semibold text-[#1F3A5F] text-lg">{apt.faculty.user.name}</h4>
+                                            <h4 className="font-semibold text-[#1F3A5F] text-lg flex items-center gap-2">
+                                                {apt.faculty.user.name}
+                                                {apt.isOnline && (
+                                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1">
+                                                        <Video size={10} /> Online
+                                                    </span>
+                                                )}
+                                            </h4>
                                             <p className="text-sm text-[#5A6C7D] flex items-center gap-2 mt-1">
                                                 <Clock size={14} /> Duration: {(new Date(apt.end) - new Date(apt.start)) / 60000} min
                                             </p>
@@ -165,6 +173,11 @@ export default function StudentDashboard() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
+                                        {apt.isOnline && apt.meetingLink && (
+                                            <a href={apt.meetingLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md transition">
+                                                <Video size={12} /> Join
+                                            </a>
+                                        )}
                                         <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
                                             {apt.status}
                                         </span>

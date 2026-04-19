@@ -198,6 +198,11 @@ function AppointmentRow({ data, type }) {
                          Group
                      </span>
                  )}
+                 {data.isOnline && (
+                     <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100 rounded">
+                         🔗 Online
+                     </span>
+                 )}
                  {data.rescheduleRequested && (
                      <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-100 rounded">
                          Reschedule Requested
