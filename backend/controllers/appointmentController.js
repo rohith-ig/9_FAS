@@ -5,8 +5,8 @@ if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
 }
 const prisma = require('../config/database.js');
-
 const sendEmail = require('../utils/mailer');
+const notificationService = require('../services/notificationService');
 
 const appointmentRequestTemplate = require('../emails/appointmentRequest');
 const appointmentApprovedTemplate = require('../emails/appointmentApproved');
@@ -17,7 +17,7 @@ const postAppointmentRequest = async (req, res) => {
         if (req.user.role !== 'STUDENT') {
             return res.status(403).json({ error: 'Only students can create appointment requests' });
         }
-        const { facultyId, start, duration, purpose, note, capacity = 1, isGroup = false, recurrenceRule, recurringEndDate } = req.body;
+        const { facultyId, start, duration, purpose, note, capacity = 1, isGroup = false, isOnline = false, recurrenceRule, recurringEndDate } = req.body;
 
         if (!facultyId || !start || !duration || !purpose) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -97,6 +97,7 @@ const postAppointmentRequest = async (req, res) => {
                 note: note,
                 capacity: capacity,
                 isGroup: isGroup,
+                isOnline: isOnline,
                 recurrenceId: recurrenceId,
                 recurrenceRule: recurrenceRule
             });

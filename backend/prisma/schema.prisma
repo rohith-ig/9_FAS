@@ -57,6 +57,8 @@ model AppointmentRequest {
   cancellationNote String?
   capacity         Int
   isGroup          Boolean            @default(false)
+  isOnline         Boolean            @default(false)
+  meetingLink      String?
   recurrenceId     String?
   recurrenceRule   String?
   rescheduleRequested Boolean          @default(false)

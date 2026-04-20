@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "../../../../axios";
-import { Loader2, ArrowLeft, CalendarClock, Clock, User, Check, X, CalendarOff, MessageSquare } from "lucide-react";
+import { Loader2, ArrowLeft, CalendarClock, Clock, User, Check, X, CalendarOff, MessageSquare, Video, Link2 } from "lucide-react";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -15,6 +15,7 @@ export default function FacultyAppointmentDetail() {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [cancelNote, setCancelNote] = useState("");
+    const [meetingLink, setMeetingLink] = useState("");
 
     const fetchAppointmentDetails = useCallback(async () => {
         try {
@@ -49,11 +50,18 @@ export default function FacultyAppointmentDetail() {
     }, [fetchAppointmentDetails]);
 
     const handleStatusUpdate = async (status, cancelSeries = false) => {
+        if (status === 'APPROVED' && appointment.isOnline && !meetingLink.trim()) {
+            toast.error('Please provide a meeting link for online appointments.');
+            return;
+        }
         setUpdating(true);
         try {
             const payload = { status, cancelSeries };
             if ((status === 'CANCELLED' || status === 'REJECTED') && cancelNote.trim() !== '') {
                 payload.cancel = cancelNote;
+            }
+            if (status === 'APPROVED' && meetingLink.trim() !== '') {
+                payload.meetingLink = meetingLink;
             }
             await api.post(`/appmt/update/${id}`, payload);
             await fetchAppointmentDetails(); // refresh specific appointment locally
@@ -218,7 +226,14 @@ export default function FacultyAppointmentDetail() {
                                     </div>
                                 </div>
                             )}
-                            {appointment.note && (
+                            {appointment.isOnline && appointment.meetingLink && (
+                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-center gap-2 text-sm">
+                                <Link2 size={14} className="text-blue-600 flex-shrink-0" />
+                                <span className="font-semibold text-blue-800">Meeting Link:</span>
+                                <a href={appointment.meetingLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">{appointment.meetingLink}</a>
+                            </div>
+                        )}
+                        {appointment.note && (
                                 <div>
                                     <h3 className="text-xs font-bold text-[#5A6C7D] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                         <MessageSquare size={14} /> Booking Note
@@ -237,6 +252,20 @@ export default function FacultyAppointmentDetail() {
                 <div className="bg-[#F8FAFC] p-5 border-t border-[#DCE3ED] flex-shrink-0">
                     {appointment.status === 'PENDING' && (
                         <div className="flex flex-col gap-4 max-w-xl mx-auto">
+                            {appointment.isOnline && (
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-sm font-semibold text-[#1F3A5F] flex items-center gap-1.5">
+                                        <Video size={14} /> Meeting Link <span className="text-xs text-[#5A6C7D] font-normal">(Required for online approval)</span>
+                                    </label>
+                                    <input
+                                        type="url"
+                                        placeholder="https://meet.google.com/..."
+                                        value={meetingLink}
+                                        onChange={(e) => setMeetingLink(e.target.value)}
+                                        className="w-full text-sm rounded-md border border-[#DCE3ED] p-3 text-[#1F3A5F] outline-none focus:border-[#4A6FA5] focus:ring-1 focus:ring-[#4A6FA5]"
+                                    />
+                                </div>
+                            )}
                             <div className="flex flex-col gap-1.5">
                                 <label className="text-sm font-semibold text-[#1F3A5F]">
                                     Response Note <span className="text-xs text-[#5A6C7D] font-normal">(Optional)</span>
