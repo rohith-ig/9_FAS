@@ -59,6 +59,7 @@ model AppointmentRequest {
   isGroup          Boolean            @default(false)
   recurrenceId     String?
   recurrenceRule   String?
+  rescheduleRequested Boolean          @default(false)
   faculty          FacultyProfile     @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   student          StudentProfile     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   students         AppointmentUsers[]

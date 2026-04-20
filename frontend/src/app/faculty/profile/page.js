@@ -1,5 +1,5 @@
 "use client";
-import { User, Mail, BookOpen, MapPin, Hash, UserSquare2, X, LogOut, Loader2 } from "lucide-react";
+import { User, Mail, BookOpen, Hash, UserSquare2, X, LogOut, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "../../../axios";
 
@@ -91,10 +91,6 @@ export default function FacultyProfilePage() {
                         <div className="flex items-center gap-3 text-[#5A6C7D]">
                             <Mail size={16} className="text-[#A8BCD6] flex-shrink-0" />
                             <span className="break-all">{user?.email || "No Email"}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[#5A6C7D]">
-                            <MapPin size={16} className="text-[#A8BCD6]" />
-                            <span>Room 304, Main Block</span>
                         </div>
                     </div>
                 </div>

@@ -56,7 +56,6 @@ export default function ManageAccountsPage() {
     roll: "",
     program: "",
     dept: "",
-    location: "",
     subjects: "",
     designation1: "",
   });
@@ -249,7 +248,6 @@ const handleSave = () => {
                   roll: "",
                   program: "",   //student program
                   dept: "",
-                  location: "",
                   subjects: "",
                   designation1: "",   //faculty designation
                 });
@@ -274,7 +272,6 @@ const handleSave = () => {
                   roll: "",
                   program: "",
                   dept: "",
-                  location: "",
                   subjects: "",
                   designation1: "",
                 });
@@ -600,9 +597,7 @@ const handleSave = () => {
                                 <span className="font-medium">Department:</span> {user.department || "-"}
                               </div>
 
-                              <div>
-                                <span className="font-medium">Location:</span> {user.location || "-"}
-                              </div>
+
 
                               <div>
                                 <span className="font-medium">Subjects:</span> {user.subjects || "-"}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, User, Clock, Mail, BookOpen, MapPin, Users, Loader2, CalendarClock } from "lucide-react";
+import { Calendar, User, Clock, Mail, BookOpen, Users, Loader2, CalendarClock, Video } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../../../../axios";
@@ -17,7 +17,7 @@ export default function ManageRequests() {
   const time = params.get("time") || "notFound";
   const status = params.get("status");
 
-  const location = params.get("location") || "notFound";
+
 
   const cancelNote = params.get("cancelNote");
   const aptId = params.get("id");
@@ -35,6 +35,8 @@ export default function ManageRequests() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [rescheduleRequested, setRescheduleRequested] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+  const [meetingLink, setMeetingLink] = useState(null);
 
   const fetchApt = useCallback(async () => {
     if (!aptId) return;
@@ -49,6 +51,8 @@ export default function ManageRequests() {
         setPurpose(found.purpose || "Not Specified");
         setNote(found.note || "No additional notes provided.");
         setRescheduleRequested(found.rescheduleRequested || false);
+        setIsOnline(found.isOnline || false);
+        setMeetingLink(found.meetingLink || null);
         
         if (found.recurrenceId) {
             const series = response.data.filter(a => a.recurrenceId === found.recurrenceId);
@@ -147,11 +151,35 @@ export default function ManageRequests() {
               <span>Time: {time}</span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <MapPin size={18} className="text-[#4A6FA5]" />
-              <span>Location: {location}</span>
-            </div>
+
           </div>
+
+          {isOnline && (
+            <div className={`mt-6 p-4 rounded-lg border flex items-center justify-between gap-4 ${
+              meetingLink ? 'bg-blue-50 border-blue-200' : 'bg-amber-50 border-amber-200'
+            }`}>
+              <div className="flex items-center gap-3">
+                <Video size={20} className={meetingLink ? 'text-blue-600' : 'text-amber-600'} />
+                <div>
+                  <p className={`text-sm font-bold ${meetingLink ? 'text-blue-800' : 'text-amber-800'}`}>
+                    {meetingLink ? 'Online Meeting Link Ready' : 'Online Meeting — Link Pending'}
+                  </p>
+                  {meetingLink && (
+                    <p className="text-xs text-blue-600 truncate max-w-xs mt-0.5">{meetingLink}</p>
+                  )}
+                  {!meetingLink && (
+                    <p className="text-xs text-amber-700 mt-0.5">Faculty will share the link upon approval.</p>
+                  )}
+                </div>
+              </div>
+              {meetingLink && (
+                <a href={meetingLink} target="_blank" rel="noopener noreferrer"
+                  className="flex-shrink-0 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition">
+                  <Video size={14} /> Join Meeting
+                </a>
+              )}
+            </div>
+          )}
 
           <div className="border-t border-[#E8EEF5] pt-6 mt-2">
             <h4 className="text-sm font-bold text-[#1F3A5F] mb-1.5 flex items-center gap-2"><BookOpen size={16} className="text-[#4A6FA5]" /> Purpose</h4>
