@@ -33,8 +33,8 @@ const handleSubmit = async (e) => {
 
   if (res.ok) {
     alert("Ticket created!");
-    router.push("/student/tickets");
-
+    const targetDashboard = role?.toLowerCase() === "student" ? "student" : "faculty";
+    router.push(`/${targetDashboard}/tickets`);
   }
 };
 
