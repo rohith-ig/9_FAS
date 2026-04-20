@@ -30,7 +30,6 @@ export default function StudentHistoryPage() {
                         type: apt.purpose,
                         dept: apt.faculty?.department || "",
                         email: apt.faculty?.user?.email || "",
-                        location: apt.location || "TBD",
                         cancellationNote: apt.cancellationNote || "",
                         startRaw: apt.start,
                         capacity: apt.capacity || 1,
@@ -301,7 +300,7 @@ export default function StudentHistoryPage() {
                                     </span>
 
                                     <Link
-                                        href={`/student/history/manage?id=${apt.id}&name=${encodeURIComponent(apt.faculty)}&date=${encodeURIComponent(apt.date)}&time=${apt.time}&dept=${apt.dept}&email=${apt.email}&location=${apt.location}&status=${apt.status}&cancelNote=${encodeURIComponent(apt.cancellationNote || '')}`}
+                                        href={`/student/history/manage?id=${apt.id}&name=${encodeURIComponent(apt.faculty)}&date=${encodeURIComponent(apt.date)}&time=${apt.time}&dept=${apt.dept}&email=${apt.email}&status=${apt.status}&cancelNote=${encodeURIComponent(apt.cancellationNote || '')}`}
                                         className="text-[#5A6C7D] group-hover:bg-[#4A6FA5] group-hover:text-white p-2 rounded-full transition-all duration-300"
                                     >
                                         <ChevronRight size={20} />

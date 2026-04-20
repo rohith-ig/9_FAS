@@ -14,7 +14,6 @@ export const facultyProfiles = [
     courses: "Data Structures, Algorithms, Operating Systems",
     status: "Available",
     statusColor: "green",
-    location: "Block B, Room 302",
     slotWindows: ["10:00 AM - 10:30 AM", "2:00 PM - 2:30 PM", "4:30 PM - 5:00 PM"],
   },
   {
@@ -26,7 +25,6 @@ export const facultyProfiles = [
     courses: "Database Systems, Web Technologies",
     status: "Busy",
     statusColor: "yellow",
-    location: "Block A, Room 118",
     slotWindows: ["9:30 AM - 10:00 AM", "1:00 PM - 1:30 PM", "3:00 PM - 3:30 PM"],
   },
   {
@@ -38,7 +36,6 @@ export const facultyProfiles = [
     courses: "Machine Learning, Data Mining, Python Programming",
     status: "Available",
     statusColor: "green",
-    location: "Research Wing, Room 12",
     slotWindows: ["10:30 AM - 11:00 AM", "1:30 PM - 2:00 PM", "4:00 PM - 4:30 PM"],
   },
 ];

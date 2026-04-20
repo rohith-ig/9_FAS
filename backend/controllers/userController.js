@@ -46,7 +46,6 @@ exports.addUser = async (req, res) => {
         create: {
           department: dept,
           designation: designation1,
-          // location,
           // subjects,
         },
       };

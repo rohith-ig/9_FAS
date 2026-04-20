@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, User, Clock, Mail, BookOpen, MapPin, Users, Loader2, CalendarClock, Video } from "lucide-react";
+import { Calendar, User, Clock, Mail, BookOpen, Users, Loader2, CalendarClock, Video } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../../../../axios";
@@ -17,7 +17,7 @@ export default function ManageRequests() {
   const time = params.get("time") || "notFound";
   const status = params.get("status");
 
-  const location = params.get("location") || "notFound";
+
 
   const cancelNote = params.get("cancelNote");
   const aptId = params.get("id");
@@ -151,10 +151,7 @@ export default function ManageRequests() {
               <span>Time: {time}</span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <MapPin size={18} className="text-[#4A6FA5]" />
-              <span>Location: {location}</span>
-            </div>
+
           </div>
 
           {isOnline && (
@@ -184,7 +181,7 @@ export default function ManageRequests() {
             </div>
           )}
 
-          <div className="border-t border-[#E8EEF5] pt-6 mt-6">
+          <div className="border-t border-[#E8EEF5] pt-6 mt-2">
             <h4 className="text-sm font-bold text-[#1F3A5F] mb-1.5 flex items-center gap-2"><BookOpen size={16} className="text-[#4A6FA5]" /> Purpose</h4>
             <p className="text-sm text-gray-700 mb-5 leading-relaxed">{purpose}</p>
 

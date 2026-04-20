@@ -294,24 +294,25 @@ const updateAppointmentStatus = async (req, res) => {
                             }
                         });
 
-                        const student = await prisma.studentProfile.findUnique({
-                            where: { id: appointment.studentId },
-                            include: { user: true }
-                        });
-                        const notifMessage = appointment.isOnline && meetingLink
-                            ? `Your appointment with ${appointment.faculty.user.name} is confirmed. Join here: ${meetingLink}`
-                            : `Your appointment with ${appointment.faculty.user.name} has been confirmed.`;
-                        await notificationService.createNotification({
-                            userId: student.userId,
-                            title: 'Appointment Confirmed',
-                            message: notifMessage,
-                            link: `/student/history/manage?id=${appointment.id}`
-                        });
-                        sendEmail({
-                            to: student.user.email,
-                            subject: 'Appointment Confirmed',
-                            html: appointmentApprovedTemplate({ student: student.user, appointment, meetingLink })
-                        }).catch(console.error);
+                        const studentUser = appointment.student?.user;
+                        if (studentUser) {
+                            const notifMessage = appointment.isOnline && meetingLink
+                                ? `Your appointment with ${appointment.faculty.user?.name || 'Faculty'} is confirmed. Join here: ${meetingLink}`
+                                : `Your appointment with ${appointment.faculty.user?.name || 'Faculty'} has been confirmed.`;
+                            
+                            await notificationService.createNotification({
+                                userId: studentUser.id,
+                                title: 'Appointment Confirmed',
+                                message: notifMessage,
+                                link: `/student/history/manage?id=${appointment.id}`
+                            });
+
+                            sendEmail({
+                                to: studentUser.email,
+                                subject: 'Appointment Confirmed',
+                                html: appointmentApprovedTemplate({ student: studentUser, appointment, meetingLink })
+                            }).catch(console.error);
+                        }
                     }
                     return res.json({ success: true, count: updateMany.count });
                 } else {
@@ -334,31 +335,34 @@ const updateAppointmentStatus = async (req, res) => {
                             }
                         });
 
-                        const student = await prisma.studentProfile.findUnique({
-                            where: { id: appointment.studentId },
-                            include: { user: true }
-                        });
-                        const notifMessage = appointment.isOnline && meetingLink
-                            ? `Your appointment with ${appointment.faculty.user.name} is confirmed. Join here: ${meetingLink}`
-                            : `Your appointment with ${appointment.faculty.user.name} has been confirmed.`;
-                        await notificationService.createNotification({
-                            userId: student.userId,
-                            title: 'Appointment Confirmed',
-                            message: notifMessage,
-                            link: `/student/history/manage?id=${appointment.id}`
-                        });
-                        sendEmail({
-                            to: student.user.email,
-                            subject: 'Appointment Confirmed',
-                            html: appointmentApprovedTemplate({ student: student.user, appointment, meetingLink })
-                        }).catch(console.error);
+                        const studentUser = appointment.student?.user;
+                        if (studentUser) {
+                            const notifMessage = appointment.isOnline && meetingLink
+                                ? `Your appointment with ${appointment.faculty.user?.name || 'Faculty'} is confirmed. Join here: ${meetingLink}`
+                                : `Your appointment with ${appointment.faculty.user?.name || 'Faculty'} has been confirmed.`;
+                            
+                            await notificationService.createNotification({
+                                userId: studentUser.id,
+                                title: 'Appointment Confirmed',
+                                message: notifMessage,
+                                link: `/student/history/manage?id=${appointment.id}`
+                            });
+
+                            sendEmail({
+                                to: studentUser.email,
+                                subject: 'Appointment Confirmed',
+                                html: appointmentApprovedTemplate({ student: studentUser, appointment, meetingLink })
+                            }).catch(console.error);
+                        }
                     }
                     if (status === 'REJECTED' && cancel) {
-                        sendEmail({
-                            to: appointment.student.user.email,
-                            subject: `Appointment Rejected`,
-                            html: `<h2>Appointment Rejected ❌</h2><p>Your appointment with <strong>${appointment.faculty.user.name}</strong> was rejected.</p><p><strong>Reason:</strong> ${cancel}</p>`
-                        }).catch(console.error);
+                        if (appointment.student?.user?.email) {
+                            sendEmail({
+                                to: appointment.student.user.email,
+                                subject: `Appointment Rejected`,
+                                html: `<h2>Appointment Rejected ❌</h2><p>Your appointment with <strong>${appointment.faculty.user?.name || 'Faculty'}</strong> was rejected.</p><p><strong>Reason:</strong> ${cancel}</p>`
+                            }).catch(console.error);
+                        }
                     }
                     return res.json(updateMain);
                 }
@@ -367,8 +371,8 @@ const updateAppointmentStatus = async (req, res) => {
         }
     }
     catch (e) {
-        console.log(e);
-        res.status(500).json("Internal Server Error");
+        console.error("Update Status Error:", e);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
@@ -450,17 +454,17 @@ const requestReschedule = async (req, res) => {
             data: { rescheduleRequested: true, status: 'PENDING', cancellationNote: note }
         });
         
-        if (note) {
+        if (note && appointment.student?.user?.email) {
             sendEmail({
                 to: appointment.student.user.email,
                 subject: `Reschedule Requested`,
-                html: `<h2>Reschedule Requested 📅</h2><p>Faculty <strong>${appointment.faculty.user.name}</strong> has requested to reschedule.</p><p><strong>Note:</strong> ${note}</p>`
+                html: `<h2>Reschedule Requested 📅</h2><p>Faculty <strong>${appointment.faculty.user?.name || 'Faculty'}</strong> has requested to reschedule.</p><p><strong>Note:</strong> ${note}</p>`
             }).catch(console.error);
         }
         
         res.json({ success: true, update });
     } catch (e) {
-        console.log(e);
+        console.error("Reschedule Request Error:", e);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }
@@ -483,8 +487,8 @@ const studentCancelAppointment = async (req, res) => {
         });
         res.json({ success: true, update });
     } catch(e) {
-        console.log(e);
-        res.status(500).json({error: "Server Error"});
+        console.error("Student Cancel error:", e);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
@@ -526,8 +530,8 @@ const getAppointmentByTime = async (req, res) => {
         res.json(appointments);
     }
     catch (e) {
-        console.log(e);
-        res.status(500).json({"Error": "Internal Server Error"});
+        console.error("Get Appointment By Time Error:", e);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
@@ -551,7 +555,7 @@ const bulkCancel = async (req, res) => {
         res.json({ success: update });
     }
     catch (e) {
-        console.log(e);
+        console.error("Bulk Cancel Error:", e);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
