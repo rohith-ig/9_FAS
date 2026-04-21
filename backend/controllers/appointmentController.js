@@ -138,8 +138,16 @@ const postAppointmentRequest = async (req, res) => {
                 data: { appointmentId: c.id, userId: req.user.studentProfile.id }
             }))
         );
-
+        
+        await notificationService.createNotification({
+            userId: faculty.user.id,
+            title: "New Appointment Request",
+            message: `${student.user.name} requested an appointment`,
+            link: `/faculty/list`
+        });
+        
         res.status(201).json(creates[0]);
+        
     }
     catch (e) {
         console.log(e);
@@ -263,6 +271,12 @@ const updateAppointmentStatus = async (req, res) => {
                 });
             }
             if (cancel) {
+                await notificationService.createNotification({
+                    userId: appointment.student.user.id,
+                    title: "Appointment Cancelled",
+                    message: `Your appointment with ${appointment.faculty.user.name} was cancelled`,
+                    
+                });
                 sendEmail({
                     to: appointment.student.user.email,
                     subject: `Appointment Cancelled`,
@@ -304,7 +318,6 @@ const updateAppointmentStatus = async (req, res) => {
                                 userId: studentUser.id,
                                 title: 'Appointment Confirmed',
                                 message: notifMessage,
-                                link: `/student/history/manage?id=${appointment.id}`
                             });
 
                             sendEmail({
@@ -345,7 +358,6 @@ const updateAppointmentStatus = async (req, res) => {
                                 userId: studentUser.id,
                                 title: 'Appointment Confirmed',
                                 message: notifMessage,
-                                link: `/student/history/manage?id=${appointment.id}`
                             });
 
                             sendEmail({
@@ -356,6 +368,11 @@ const updateAppointmentStatus = async (req, res) => {
                         }
                     }
                     if (status === 'REJECTED' && cancel) {
+                        await notificationService.createNotification({
+                            userId: appointment.student.user.id,
+                            title: "Appointment Rejected",
+                            message: `Your appointment with ${appointment.faculty.user?.name || 'Faculty'} was rejected`,
+                        });
                         if (appointment.student?.user?.email) {
                             sendEmail({
                                 to: appointment.student.user.email,
