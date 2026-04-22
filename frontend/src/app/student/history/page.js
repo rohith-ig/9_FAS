@@ -41,29 +41,7 @@ export default function StudentHistoryPage() {
                     };
                 }).sort((a, b) => new Date(a.startRaw) - new Date(b.startRaw));
                 
-                const groupAppointments = (appts) => {
-                    const grouped = [];
-                    const seen = new Set();
-                    for (const appt of appts) {
-                        if (appt.recurrenceId) {
-                            if (seen.has(appt.recurrenceId)) continue;
-                            seen.add(appt.recurrenceId);
-                            
-                            const series = appts.filter(a => a.recurrenceId === appt.recurrenceId);
-                            grouped.push({
-                                ...appt,
-                                isGroupedSeries: true,
-                                seriesCount: series.length,
-                                recurrenceRule: appt.recurrenceRule
-                            });
-                        } else {
-                            grouped.push(appt);
-                        }
-                    }
-                    return grouped;
-                };
-
-                setAppointments(groupAppointments(formattedData));
+                setAppointments(formattedData);
             } catch (error) {
                 console.error("Failed to fetch appointments:", error);
             } finally {
@@ -73,15 +51,37 @@ export default function StudentHistoryPage() {
         fetchAppointments();
     }, []);
 
+    const groupAppointments = (appts) => {
+        const grouped = [];
+        const seen = new Set();
+        for (const appt of appts) {
+            if (appt.recurrenceId) {
+                if (seen.has(appt.recurrenceId)) continue;
+                seen.add(appt.recurrenceId);
+                
+                const series = appts.filter(a => a.recurrenceId === appt.recurrenceId);
+                grouped.push({
+                    ...appt,
+                    isGroupedSeries: true,
+                    seriesCount: series.length,
+                    recurrenceRule: appt.recurrenceRule
+                });
+            } else {
+                grouped.push(appt);
+            }
+        }
+        return grouped;
+    };
+
     const [activeTab, setActiveTab] = useState("pending");
 
-    const rescheduleRequests = appointments.filter(
+    const rescheduleRequests = groupAppointments(appointments.filter(
         (apt) => apt.rescheduleRequested && apt.status !== 'Cancelled' && apt.status !== 'Rejected'
-    );
+    ));
 
-    const pendingAppointments = appointments.filter(a => a.status === 'Pending');
-    const scheduledAppointments = appointments.filter(a => a.status === 'Confirmed');
-    const historyAppointments = appointments.filter(a => ['Rejected', 'Cancelled', 'Completed'].includes(a.status));
+    const pendingAppointments = groupAppointments(appointments.filter(a => a.status === 'Pending' && new Date(a.startRaw) >= new Date()));
+    const scheduledAppointments = groupAppointments(appointments.filter(a => a.status === 'Confirmed' && new Date(a.startRaw) >= new Date()));
+    const historyAppointments = groupAppointments(appointments.filter(a => ['Rejected', 'Cancelled', 'Completed'].includes(a.status) || new Date(a.startRaw) < new Date()));
 
     const filteredAppointments =
         activeTab === "pending" ? pendingAppointments :

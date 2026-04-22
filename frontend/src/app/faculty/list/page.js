@@ -49,10 +49,12 @@ export default function FacultyAppointmentList() {
     return grouped;
   };
 
-  const pendingAppointments = groupAppointments(appointments.filter(a => a.status === 'PENDING'));
-  const scheduledAppointments = groupAppointments(appointments.filter(a => a.status === 'APPROVED'));
+  const pendingAppointments = groupAppointments(appointments.filter(a => a.status === 'PENDING' && new Date(a.end) >= new Date()));
+  const scheduledAppointments = groupAppointments(appointments.filter(a => a.status === 'APPROVED' && new Date(a.end) >= new Date()));
   const historyAppointments = groupAppointments(appointments.filter(a => ['REJECTED', 'CANCELLED'].includes(a.status) || new Date(a.end) < new Date()));
-
+  console.log("Pending:", pendingAppointments);
+  console.log("Scheduled:", scheduledAppointments);
+  console.log("History:", historyAppointments);
   if (loading) {
     return (
       <div className="flex min-h-[calc(100vh-64px)] w-full items-center justify-center text-[#5A6C7D] flex-col gap-3 bg-[#F4F7FB]">
