@@ -45,6 +45,9 @@ exports.getMyTickets = async (req, res) => {
       where: {
         userId: req.user.id,
       },
+      include: {
+        user: true,
+      },
       orderBy: {
         createdAt: "desc",
       },

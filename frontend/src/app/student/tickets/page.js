@@ -1,6 +1,7 @@
-"use client"; 
+"use client";
 import { useEffect, useState } from "react"; 
 import Link from "next/link";
+import api from "../../../axios.js";
 
 export default function StudentTickets() { 
   const [view, setView] = useState("open");
@@ -8,29 +9,13 @@ export default function StudentTickets() {
   const [openId, setOpenId] = useState(null);
 
 
-  // 2. Add the cookie helper
-  const getTokenFromCookie = () => { 
-    const value = `; ${document.cookie}`; 
-    const parts = value.split(`; token=`); 
-    if (parts.length === 2) return parts.pop().split(';').shift(); 
-    return null; 
-  };
-
-  // 3. Add the useEffect to fetch the student's tickets
   useEffect(() => {
     const fetchMyTickets = async () => {
-      const token = getTokenFromCookie();
-      
-      const res = await fetch("http://localhost:6969/api/tickets/my-tickets", {
-        credentials: "include",
-        headers: {
-          "Authorization": `Bearer ${token}` // Inject token so the backend allows it
-        }
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setTickets(data); // Save the fetched tickets to state
+      try {
+        const res = await api.get('/tickets/my-tickets');
+        setTickets(res.data);
+      } catch (error) {
+        console.error("Failed to fetch tickets:", error);
       }
     };
     
@@ -102,9 +87,10 @@ export default function StudentTickets() {
         <div className="bg-white border border-[#E0E0E0] rounded-xl overflow-hidden">
 
           {/* Table Header */}
-<div className="grid grid-cols-5 bg-gray-50 text-sm font-medium text-gray-600 p-4">
+<div className="grid grid-cols-6 bg-gray-50 text-sm font-medium text-gray-600 p-4">
   <div>Ticket Number</div>
   <div>Date Created</div>
+  <div>Client</div>
   <div>Status</div>
   <div>Topic</div>
   <div></div> {/* Arrow column */}
@@ -121,7 +107,7 @@ export default function StudentTickets() {
     <div key={ticket.id} className="border-t border-[#E0E0E0]">
 
       {/* Row */}
-      <div className="grid grid-cols-5 p-4 text-sm items-center">
+      <div className="grid grid-cols-6 p-4 text-sm items-center">
 
         {/* Ticket ID */}
         <div className="font-medium text-[#1F3A5F]">
@@ -131,6 +117,12 @@ export default function StudentTickets() {
         {/* Date */}
         <div>
           {new Date(ticket.createdAt).toLocaleDateString()}
+        </div>
+
+        {/* Client */}
+        <div className="text-xs text-gray-600">
+          <p className="font-medium text-[#1F3A5F]">{ticket.user?.name}</p>
+          <p>{ticket.user?.email}</p>
         </div>
 
         {/* Status */}

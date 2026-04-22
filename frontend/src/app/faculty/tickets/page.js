@@ -2,33 +2,20 @@
 
 import { useEffect, useState } from "react"; 
 import Link from "next/link";
+import api from "../../../axios.js";
  
 export default function FacultyTickets() { 
   const [view, setView] = useState("open");
   const [tickets, setTickets] = useState([]);
   const [openId, setOpenId] = useState(null);
 
-  const getTokenFromCookie = () => { 
-    const value = `; ${document.cookie}`; 
-    const parts = value.split(`; token=`); 
-    if (parts.length === 2) return parts.pop().split(';').shift(); 
-    return null; 
-  };
-
   useEffect(() => {
     const fetchMyTickets = async () => {
-      const token = getTokenFromCookie();
-      
-      const res = await fetch("http://localhost:6969/api/tickets/my-tickets", {
-        credentials: "include",
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setTickets(data);
+      try {
+        const res = await api.get('/tickets/my-tickets');
+        setTickets(res.data);
+      } catch (error) {
+        console.error("Failed to fetch tickets:", error);
       }
     };
     
@@ -98,9 +85,10 @@ export default function FacultyTickets() {
         <div className="bg-white border border-[#E0E0E0] rounded-xl overflow-hidden">
 
           {/* Table Header */}
-          <div className="grid grid-cols-5 bg-gray-50 text-sm font-medium text-gray-600 p-4">
+          <div className="grid grid-cols-6 bg-gray-50 text-sm font-medium text-gray-600 p-4">
             <div>Ticket Number</div>
             <div>Date Created</div>
+            <div>Client</div>
             <div>Status</div>
             <div>Topic</div>
             <div></div> {/* Arrow column */}
@@ -115,7 +103,7 @@ export default function FacultyTickets() {
             currentTickets.map((ticket) => (
               <div key={ticket.id} className="border-t border-[#E0E0E0]">
                 {/* Row */}
-                <div className="grid grid-cols-5 p-4 text-sm items-center">
+                <div className="grid grid-cols-6 p-4 text-sm items-center">
                   {/* Ticket ID */}
                   <div className="font-medium text-[#1F3A5F]">
                     {ticket.id}
@@ -124,6 +112,12 @@ export default function FacultyTickets() {
                   {/* Date */}
                   <div>
                     {new Date(ticket.createdAt).toLocaleDateString()}
+                  </div>
+
+                  {/* Client */}
+                  <div className="text-xs text-gray-600">
+                    <p className="font-medium text-[#1F3A5F]">{ticket.user?.name}</p>
+                    <p>{ticket.user?.email}</p>
                   </div>
 
                   {/* Status */}

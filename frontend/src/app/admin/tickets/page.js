@@ -1,5 +1,6 @@
 "use client";
   import { useEffect, useState } from "react";
+  import api from "../../../axios.js";
 
 
 // Standalone admin page.
@@ -12,23 +13,14 @@ export default function ResolveTicketsPage() {
 const [tickets, setTickets] = useState([]);
 const [view, setView] = useState("active");
 
-const getTokenFromCookie = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; token=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-};
-
 useEffect(() => {
   const fetchTickets = async () => {
-  const token = getTokenFromCookie();
-  const res = await fetch("http://localhost:6969/api/tickets/view-tickets", { 
-    credentials: "include", 
-    headers: { "Authorization": `Bearer ${token}` } // Inject here
-  });
-
-    const data = await res.json();
-    setTickets(data);
+    try {
+      const res = await api.get('/tickets/view-tickets');
+      setTickets(res.data);
+    } catch (error) {
+      console.error("Failed to fetch tickets:", error);
+    }
   };
 
   fetchTickets();
@@ -36,19 +28,17 @@ useEffect(() => {
 
 
 const handleResolve = async (id) => {
-  const token = getTokenFromCookie();
-  await fetch(`http://localhost:6969/api/tickets/resolveTicket/${id}`, {
-    method: "PUT",
-    credentials: "include",
-    headers: { "Authorization": `Bearer ${token}` } ,
-  });
-
-  // refresh
-  setTickets(prev =>
-    prev.map(t =>
-      t.id === id ? { ...t, ticketStatus: "RESOLVED" }: t
-    )
-  );
+  try {
+    await api.put(`/tickets/resolveTicket/${id}`);
+    // refresh
+    setTickets(prev =>
+      prev.map(t =>
+        t.id === id ? { ...t, ticketStatus: "RESOLVED" }: t
+      )
+    );
+  } catch (error) {
+    console.error("Failed to resolve ticket:", error);
+  }
 };
 
 
@@ -124,8 +114,9 @@ return (
                 {/* Raised By */}
                 <div>
                   <p className="text-sm text-[#1F3A5F] font-medium mt-1">
-                    {ticket.user?.studentProfile?.roll || ticket.user?.name}
+                    {ticket.user?.name} {ticket.user?.studentProfile?.roll ? `(${ticket.user.studentProfile.roll})` : ""}
                   </p>
+                  <p className="text-xs text-gray-500">{ticket.user?.email}</p>
                 </div>
 
                 {/* Title */}

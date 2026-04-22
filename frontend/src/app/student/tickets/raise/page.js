@@ -1,36 +1,22 @@
 "use client";
 import RaiseTicketForm from "@/components/RaiseTicketForm";
 import { useState, useEffect } from "react";
-
+import api from "../../../../axios"
 
 
 export default function StudentRaiseTicketPage() {
 
   const [user, setUser] = useState(null);
 
-  const getTokenFromCookie = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; token=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-};
   useEffect(() => {
     const fetchUser = async () => {
-    const token = getTokenFromCookie(); // 1. Get token
-
-    const res = await fetch("http://localhost:6969/api/users/get", { 
-      credentials: "include", 
-      headers: {
-        "Authorization": `Bearer ${token}` // 2. Add token here
-      }
-    });
-
-      const data = await res.json();
-      if (data.success) {
-        setUser(data.user);
+      try {
+        const response = await api.get('/users/get');
+        setUser(response.data.user);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
       }
     };
-
     fetchUser();
   }, []);
 
