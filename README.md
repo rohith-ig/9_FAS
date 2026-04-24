@@ -13,35 +13,8 @@ Scheduling academic appointments between students and faculty members within an 
 
 | Name | Role / ID | Email | Key Contributions |
 | :--- | :--- | :--- | :--- |
-| Janhvi Halder | B230352CS | janhvi_b230352cs@nitc.ac.in | 
-• Admin dashboard & user management (CRUD, bulk upload, search)  
-• Ticket management system (view, resolve, client details)  
-• System backup (export database as JSON)  
-• Ticket support module (Student & Faculty)  
-• Appointment rescheduling workflow (request/accept/cancel)  
-• Faculty search & appointment history UI |
-| Rohith S | B230527CS | rohith_b230527cs@nitc.ac.in | 
-• Core scheduling engine (availability, slot management, conflict resolution)  
-• Authentication & authorization system (gAuth, JWT, RBAC)  
-• End-to-end booking workflow (student ↔ faculty, recurring & group)  
-• System-wide appointment lifecycle management (create, view, cancel)  
-• Backend-driven dashboards (Student/Admin integration)  
-• Deployment & production setup (DigitalOcean VM) |
-| Nidhi Binu | B230075CS | nidhi_b230075cs@nitc.ac.in | 
-• Bulk timetable upload system (CSV-based admin import)  
-• Visual slot management UI (time-slot mapping & consistency)  
-• Manual slot control for admin (add/remove via slot map)  
-• Faculty appointment dashboard (upcoming & history views)  
-• Faculty slot editing & rescheduling UI  
-• Backend logic for slot management & reschedule handling |
-| Riya Seby John | B230086CS | riya_b230086cs@nitc.ac.in | 
-• Admin timetable management system (faculty scheduling & slot assignment)  
-• DNS configuration & domain setup  
-• Email notification system (Resend API integration)  
-• Automated email workflows (request, approval, rejection triggers)  
-• Real-time in-app notification system (user-specific alerts) |
-| Muhammad Nubaise C K | B220414CS | muhammed_b220414cs@nitc.ac.in | 
-• Support ticket system UI & flow logic  
-• Appointment lifecycle logic (cancel, reschedule, approval flows)  
-• Meeting link integration (faculty → student flow)  
-• Initial rescheduling system design & implementation |
+| Janhvi Halder | B230352CS | janhvi_b230352cs@nitc.ac.in | <ul><li>Admin dashboard & user management (CRUD, bulk upload, search)</li><li>Ticket management system (view, resolve, client details)</li><li>System backup (JSON export)</li><li>Ticket support module (Student & Faculty)</li><li>Appointment rescheduling workflow (request/accept/cancel)</li><li>Faculty search & appointment history UI</li></ul> |
+| Rohith S | B230527CS | rohith_b230527cs@nitc.ac.in | <ul><li><strong>Core scheduling engine</strong> (availability, slot management, conflict resolution)</li><li>Authentication & authorization (gAuth, JWT, RBAC)</li><li>End-to-end booking workflow (recurring & group)</li><li>Appointment lifecycle management (create, view, cancel)</li><li>Backend-driven dashboards (Student/Admin)</li><li>Deployment & production setup (DigitalOcean VM)</li></ul> |
+| Nidhi Binu | B230075CS | nidhi_b230075cs@nitc.ac.in | <ul><li>Bulk timetable upload system (CSV-based admin import)</li><li>Visual slot management UI (time-slot mapping & consistency)</li><li>Manual slot control for admin (add/remove via slot map)</li><li>Faculty appointment dashboard (upcoming & history views)</li><li>Faculty slot editing & rescheduling UI</li><li>Backend logic for slot management & reschedule handling</li></ul> |
+| Riya Seby John | B230086CS | riya_b230086cs@nitc.ac.in | <ul><li>Admin timetable management system (faculty scheduling & slot assignment)</li><li>DNS configuration & domain setup</li><li>Email notification system (Resend API integration)</li><li>Automated email workflows (request, approval, rejection triggers)</li><li>Real-time in-app notification system (user-specific alerts)</li></ul> |
+| Muhammad Nubaise C K | B220414CS | muhammed_b220414cs@nitc.ac.in | <ul><li>Support ticket system UI & flow logic</li><li>Appointment lifecycle logic (cancel, reschedule, approval flows)</li><li>Meeting link integration (faculty → student flow)</li><li>Initial rescheduling system design & implementation</li></ul> |
